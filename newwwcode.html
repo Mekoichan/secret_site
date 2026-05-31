@@ -1,0 +1,2542 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>本丸管理系統</title>
+    <style>
+        :root {
+            --win98-bg: #c0c0c0;
+            --win98-btn: #c0c0c0;
+            --win98-btn-highlight: #ffffff;
+            --win98-btn-shadow: #808080;
+            --win98-btn-dark: #404040;
+            --win98-title: #000080;
+            --win98-title-text: #ffffff;
+            --win98-window-bg: #ffffff;
+            --taskbar-bg: #c0c0c0;
+            --desktop-bg: #3a6b5e;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'MS Sans Serif', 'Microsoft Sans Serif', 'Segoe UI', Tahoma, sans-serif;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: default;
+            background: #000;
+        }
+
+        /* ============ DESKTOP ============ */
+        #desktop {
+            width: 100vw;
+            height: calc(100vh - 40px);
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: background-image 0.8s ease;
+            overflow: hidden;
+        }
+        #desktop.wallpaper-default {
+            background: linear-gradient(160deg, #4a7c6b 0%, #2d5a4b 25%, #5a8a6e 40%, #3a6b5e 55%, #6b9a7a 70%, #2a4a3a 100%),
+                radial-gradient(ellipse at 30% 55%, rgba(180, 160, 120, 0.25) 0%, transparent 50%),
+                radial-gradient(ellipse at 60% 35%, rgba(200, 180, 140, 0.2) 0%, transparent 45%),
+                radial-gradient(circle at 50% 70%, rgba(140, 120, 80, 0.15) 0%, transparent 40%);
+            background-color: #3a6b5e;
+        }
+        #desktop.wallpaper-sepia {
+            background: linear-gradient(180deg, #c2a878 0%, #b8945c 20%, #d4c08a 40%, #a07840 60%, #c8b078 80%, #8a6830 100%),
+                radial-gradient(ellipse at 40% 50%, rgba(60, 40, 20, 0.35) 0%, transparent 55%),
+                radial-gradient(circle at 55% 45%, rgba(80, 55, 25, 0.3) 0%, transparent 50%);
+            background-color: #b8945c;
+            filter: sepia(0.5) brightness(0.85);
+        }
+        #desktop.wallpaper-black {
+            background: #0a0a0a !important;
+            filter: none !important;
+        }
+
+        /* Desktop Icons Grid */
+        #desktop-icons {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 2;
+        }
+        .desktop-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+            padding: 8px 6px;
+            cursor: pointer;
+            border-radius: 4px;
+            text-align: center;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            transition: background 0.1s;
+            position: absolute;
+            user-select: none;
+        }
+        .desktop-icon:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .desktop-icon:active {
+            background: rgba(255, 255, 255, 0.35);
+        }
+        .desktop-icon .icon-img {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 3px;
+            pointer-events: none;
+            filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.4));
+        }
+        .desktop-icon .icon-label {
+            pointer-events: none;
+            font-size: 10.5px;
+            line-height: 1.2;
+            word-break: break-all;
+        }
+        .desktop-icon.circular-layout {
+            transition: all 2s ease;
+        }
+
+        /* ============ TASKBAR ============ */
+        #taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: #c0c0c0;
+            border-top: 2px solid #fff;
+            display: flex;
+            align-items: center;
+            padding: 0 4px;
+            z-index: 1000;
+            box-shadow: 0 -1px 0 #808080;
+        }
+        #start-btn {
+            height: 30px;
+            padding: 0 14px;
+            font-weight: bold;
+            font-size: 13px;
+            border: 2px solid;
+            border-color: #fff #808080 #808080 #fff;
+            background: #c0c0c0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            letter-spacing: 0.5px;
+            min-width: 55px;
+            justify-content: center;
+        }
+        #start-btn:active,
+        #start-btn.active {
+            border-color: #808080 #fff #fff #808080;
+            background: #b0b0b0;
+        }
+        #start-btn .start-icon {
+            font-size: 16px;
+        }
+        #taskbar-windows {
+            flex: 1;
+            display: flex;
+            gap: 3px;
+            margin: 0 6px;
+            overflow-x: auto;
+            height: 30px;
+            align-items: center;
+        }
+        .taskbar-window-item {
+            height: 26px;
+            padding: 0 12px;
+            font-size: 11px;
+            border: 2px solid;
+            border-color: #fff #808080 #808080 #fff;
+            background: #c0c0c0;
+            cursor: pointer;
+            white-space: nowrap;
+            min-width: 80px;
+            text-align: center;
+            line-height: 22px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 0;
+            max-width: 160px;
+        }
+        .taskbar-window-item.active {
+            border-color: #808080 #fff #fff #808080;
+            background: #b0b0b0;
+            font-weight: bold;
+        }
+        #taskbar-time {
+            font-size: 11px;
+            padding: 0 10px;
+            white-space: nowrap;
+            cursor: pointer;
+            min-width: 70px;
+            text-align: right;
+            border-left: 1px solid #808080;
+            height: 30px;
+            line-height: 30px;
+            letter-spacing: 0.3px;
+        }
+        #taskbar-time:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        /* ============ START MENU ============ */
+        #start-menu {
+            position: fixed;
+            bottom: 40px;
+            left: 2px;
+            width: 220px;
+            background: #c0c0c0;
+            border: 2px solid;
+            border-color: #fff #808080 #808080 #fff;
+            z-index: 1001;
+            display: none;
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.3);
+        }
+        #start-menu.show {
+            display: block;
+        }
+        #start-menu .menu-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #d0d0d0;
+            letter-spacing: 0.5px;
+        }
+        #start-menu .menu-item:hover {
+            background: #000080;
+            color: #fff;
+        }
+        #start-menu .menu-divider {
+            height: 1px;
+            background: #808080;
+            margin: 3px 0;
+            border-top: 1px solid #fff;
+        }
+        #start-menu .menu-item.shutdown {
+            font-weight: bold;
+            color: #600;
+        }
+        #start-menu .menu-item.shutdown:hover {
+            background: #800;
+            color: #fff;
+        }
+
+        /* ============ WINDOWS ============ */
+        .window {
+            position: absolute;
+            min-width: 280px;
+            min-height: 150px;
+            background: #c0c0c0;
+            border: 3px solid;
+            border-color: #fff #808080 #808080 #fff;
+            z-index: 10;
+            display: none;
+            box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+            resize: both;
+            overflow: auto;
+        }
+        .window.active {
+            z-index: 50;
+        }
+        .window .title-bar {
+            background: #000080;
+            color: #fff;
+            padding: 4px 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: move;
+            letter-spacing: 0.5px;
+            user-select: none;
+        }
+        .window .title-bar .title-text {
+            flex: 1;
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .window .title-bar .win-buttons {
+            display: flex;
+            gap: 2px;
+        }
+        .window .title-bar .win-btn {
+            width: 20px;
+            height: 20px;
+            background: #c0c0c0;
+            border: 2px solid;
+            border-color: #fff #808080 #808080 #fff;
+            cursor: pointer;
+            font-size: 11px;
+            line-height: 16px;
+            text-align: center;
+            color: #000;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .window .title-bar .win-btn:active {
+            border-color: #808080 #fff #fff #808080;
+        }
+        .window .title-bar .win-btn.close-btn {
+            font-size: 13px;
+        }
+        .window .window-content {
+            padding: 12px;
+            background: #fff;
+            min-height: 60px;
+            font-size: 12px;
+            color: #000;
+            line-height: 1.5;
+            overflow: auto;
+            max-height: calc(100vh - 200px);
+        }
+        .window-resize-handle {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 16px;
+            height: 16px;
+            cursor: nwse-resize;
+            background: linear-gradient(135deg, transparent 50%, #808080 50%);
+        }
+        /* 在现有 .window 样式后添加 */
+@media (max-width: 768px) {
+    .window {
+        min-width: 260px;
+        width: 90vw !important;
+        left: 5vw !important;
+        top: 80px !important;
+        max-height: 70vh;
+        resize: none; /* 移动端可禁用缩放，或保留但不强求 */
+    }
+    .window .window-content {
+        max-height: 50vh;
+        overflow: auto;
+    }
+    .window-resize-handle {
+        display: none; /* 触摸屏缩放体验差，隐藏 */
+    }
+    .desktop-icon {
+        width: 70px;
+        font-size: 10px;
+    }
+    .desktop-icon .icon-img {
+        width: 36px;
+        height: 36px;
+        font-size: 28px;
+    }
+    #taskbar-windows {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .taskbar-window-item {
+        min-width: 60px;
+        font-size: 10px;
+    }
+}
+        /* ============ OVERLAY & MODALS ============ */
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 2000;
+            display: none;
+            pointer-events: all;
+        }
+        .black-screen {
+            background: #000;
+            z-index: 2000;
+        }
+        .flash-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 2001;
+            display: none;
+            pointer-events: none;
+            background: #000;
+            color: #fff;
+            font-size: 24px;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            flex-direction: column;
+            font-family: 'Times New Roman', serif;
+        }
+        .terminal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #0a0a0a;
+            z-index: 3000;
+            display: none;
+            color: #33ff33;
+            font-family: 'Courier New', 'Consolas', monospace;
+            font-size: 15px;
+            padding: 40px;
+            flex-direction: column;
+            overflow-y: auto;
+            line-height: 1.7;
+        }
+        .terminal-overlay .cursor-blink {
+            display: inline-block;
+            width: 10px;
+            height: 18px;
+            background: #33ff33;
+            animation: blink 0.7s infinite;
+            vertical-align: text-bottom;
+            margin-left: 2px;
+        }
+        @keyframes shake {
+    0% { transform: translate(1px, 1px); }
+    25% { transform: translate(-1px, -2px); }
+    50% { transform: translate(-2px, 1px); }
+    75% { transform: translate(2px, -1px); }
+    100% { transform: translate(1px, 1px); }
+}
+@keyframes pulse {
+    0% { border-color: #8b0000; box-shadow: 0 0 0 0 rgba(139,0,0,0.5); }
+    70% { border-color: #ff0000; box-shadow: 0 0 15px 5px rgba(255,0,0,0.6); }
+    100% { border-color: #8b0000; box-shadow: 0 0 0 0 rgba(139,0,0,0); }
+}
+        @keyframes blink {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0;
+            }
+        }
+        .terminal-input-line {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .terminal-input-line input {
+            background: transparent;
+            border: none;
+            color: #33ff33;
+            font-family: inherit;
+            font-size: inherit;
+            outline: none;
+            caret-color: #33ff33;
+            flex: 1;
+            letter-spacing: 2px;
+        }
+
+        /* ============ GOV SITE STYLES ============ */
+        .gov-site {
+            font-family: 'Times New Roman', 'SimSun', '宋体', serif;
+            background: #f5f5f0;
+            color: #1a1a1a;
+            padding: 20px 40px;
+            min-height: 100%;
+            letter-spacing: 0.5px;
+        }
+        .gov-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 3px solid #8b0000;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+        .gov-header .gov-title {
+            font-size: 28px;
+            color: #8b0000;
+            font-weight: bold;
+            letter-spacing: 3px;
+        }
+        .gov-header .hinomaru {
+            width: 40px;
+            height: 40px;
+            background: #bc002d;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .gov-announcement-list {
+            list-style: none;
+        }
+        .gov-announcement-item {
+            border-bottom: 1px solid #ccc;
+            padding: 14px 0;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .gov-announcement-item:hover {
+            background: #fdf5f5;
+        }
+        .gov-announcement-item .ann-title {
+            font-size: 17px;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .gov-announcement-item .ann-meta {
+            font-size: 12px;
+            color: #777;
+            display: flex;
+            gap: 20px;
+        }
+        .gov-announcement-item .ann-seal {
+            color: #8b0000;
+            font-weight: bold;
+            border: 1px solid #8b0000;
+            display: inline-block;
+            padding: 1px 6px;
+            font-size: 10px;
+            letter-spacing: 2px;
+            border-radius: 2px;
+        }
+        .hidden-red-text {
+            color: #f5f5f0;
+            transition: color 0.3s;
+            user-select: text;
+            cursor: text;
+        }
+        .hidden-red-text::selection {
+            color: #8b0000;
+            background: #ffe0e0;
+        }
+        .hidden-red-text:hover {
+            color: #8b0000;
+            cursor: text;
+        }
+        .gov-footer-note {
+            font-size: 10px;
+            color: #aaa;
+            text-align: right;
+            margin-top: 20px;
+            font-style: italic;
+            letter-spacing: 1px;
+        }
+        .gov-archive-link {
+            font-size: 11px;
+            color: #666;
+            cursor: pointer;
+            text-decoration: underline;
+            margin-top: 15px;
+            display: inline-block;
+        }
+        .gov-old-entry {
+            font-size: 10px;
+            color: #999;
+            cursor: pointer;
+            margin-top: 30px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+        .gov-old-entry:hover {
+            color: #555;
+        }
+        .gov-contact-form {
+            margin-top: 20px;
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+        }
+        .gov-contact-form textarea {
+            width: 100%;
+            height: 80px;
+            font-family: inherit;
+            font-size: 13px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            resize: vertical;
+        }
+        .gov-contact-form input[type="text"] {
+            width: 100%;
+            padding: 6px;
+            font-family: inherit;
+            border: 1px solid #ccc;
+            margin-bottom: 8px;
+        }
+        .gov-contact-form .send-btn {
+            background: #8b0000;
+            color: #fff;
+            border: none;
+            padding: 8px 24px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            letter-spacing: 2px;
+        }
+
+        /* ============ NOTIFICATION TOAST ============ */
+        #notification-area {
+            position: fixed;
+            bottom: 50px;
+            right: 15px;
+            z-index: 1500;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 6px;
+            pointer-events: none;
+        }
+        .notification-toast {
+            background: #ffffe0;
+            border: 2px solid #808080;
+            padding: 10px 14px;
+            font-size: 11px;
+            max-width: 280px;
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.4s ease;
+            pointer-events: auto;
+            cursor: pointer;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-family: 'MS Sans Serif', 'Microsoft Sans Serif', sans-serif;
+        }
+        .notification-toast .notif-avatar {
+            width: 36px;
+            height: 36px;
+            background: #2a1a3a;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #c8a0ff;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ============ CMD WINDOW ============ */
+        .cmd-window {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 550px;
+            background: #000;
+            color: #c0c0c0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            padding: 20px;
+            z-index: 2500;
+            border: 2px solid #555;
+            display: none;
+            line-height: 1.6;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+
+        /* ============ MODAL ============ */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 2800;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-box {
+            background: #f5f5f0;
+            border: 4px solid #8b0000;
+            padding: 30px;
+            max-width: 500px;
+            text-align: center;
+            font-family: 'Times New Roman', serif;
+            font-size: 16px;
+            letter-spacing: 1px;
+            box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.4);
+        }
+        .modal-box .modal-btn {
+            margin-top: 15px;
+            padding: 8px 24px;
+            background: #8b0000;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+
+        /* ============ FINAL MODAL (permanent) ============ */
+        #permanent-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 5000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            pointer-events: all;
+        }
+        #permanent-modal .perm-modal-content {
+            background: #111;
+            border: 3px solid #8b0000;
+            padding: 40px;
+            text-align: center;
+            color: #ccc;
+            font-family: 'Times New Roman', serif;
+            font-size: 18px;
+            letter-spacing: 2px;
+            max-width: 550px;
+            box-shadow: 0 0 60px rgba(139, 0, 0, 0.5);
+        }
+
+        /* ============ MISC ============ */
+        .context-menu {
+            position: fixed;
+            background: #c0c0c0;
+            border: 2px solid;
+            border-color: #fff #808080 #808080 #fff;
+            z-index: 1900;
+            display: none;
+            min-width: 160px;
+            font-size: 12px;
+            box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.3);
+        }
+        .context-menu .ctx-item {
+            padding: 6px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #d0d0d0;
+        }
+        .context-menu .ctx-item:hover {
+            background: #000080;
+            color: #fff;
+        }
+        .context-menu .ctx-item.disabled {
+            color: #999;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .dragging {
+            opacity: 0.7;
+            z-index: 100 !important;
+        }
+        input[type="password"].terminal-pw {
+            background: transparent;
+            border: none;
+            color: #33ff33;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            outline: none;
+            letter-spacing: 3px;
+            width: 120px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==================== DESKTOP ==================== -->
+    <div id="desktop" class="wallpaper-default">
+        <div id="desktop-icons">
+            <!-- Icons positioned via JS -->
+        </div>
+    </div>
+
+    <!-- ==================== TASKBAR ==================== -->
+    <div id="taskbar">
+        <button id="start-btn"><span class="start-icon">🔴</span> 開始</button>
+        <div id="taskbar-windows"></div>
+        <div id="taskbar-time">00:00</div>
+    </div>
+
+    <!-- ==================== START MENU ==================== -->
+    <div id="start-menu">
+        <div class="menu-item" data-action="gov-site">📋 時政公告</div>
+        <div class="menu-item" data-action="memo">📝 私人備忘錄</div>
+        <div class="menu-item" data-action="mail">📧 時政郵件</div>
+        <div class="menu-item" data-action="mycomputer">💻 我的電腦</div>
+        <div class="menu-divider"></div>
+        <div class="menu-item shutdown" data-action="shutdown">⏻ 關機</div>
+    </div>
+
+    <!-- ==================== CONTEXT MENU ==================== -->
+    <div class="context-menu" id="desktop-context-menu">
+        <div class="ctx-item" data-action="refresh">重新整理</div>
+        <div class="ctx-item" data-action="personalize" id="ctx-personalize">個人化</div>
+    </div>
+
+    <!-- ==================== NOTIFICATION AREA ==================== -->
+    <div id="notification-area"></div>
+
+    <!-- ==================== FULLSCREEN OVERLAYS ==================== -->
+    <div class="fullscreen-overlay black-screen" id="black-overlay"></div>
+    <div class="flash-overlay" id="flash-overlay"></div>
+    <div class="cmd-window" id="cmd-window"></div>
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-box" id="modal-box"></div>
+    </div>
+    <div class="terminal-overlay" id="terminal-overlay"></div>
+    <div id="permanent-modal">
+        <div class="perm-modal-content" id="perm-modal-content"></div>
+    </div>
+
+    <!-- ==================== WINDOW TEMPLATES (created by JS) ==================== -->
+    <div id="window-container"></div>
+
+    <script>
+        (function() {
+            // ============ STATE ============
+            const STATE = {
+                shutdownCount: parseInt(localStorage.getItem('shutdownCount') || '0'),
+                wallpaperType: localStorage.getItem('wallpaperType') || 'default',
+                timeReset: localStorage.getItem('timeReset') === 'true',
+                memoEntries: JSON.parse(localStorage.getItem('memoEntries') || '[]'),
+                permanentLocked: localStorage.getItem('permanentLocked') === 'true',
+                saniwaTriggered: localStorage.getItem('saniwaTriggered') === 'true',
+                contextMenuPersonalizeDisabled: localStorage.getItem('ctxPersonalizeDisabled') === 'true',
+                userFeedbackName: localStorage.getItem('userFeedbackName') || '',
+                
+            };
+
+            function saveState() {
+                localStorage.setItem('shutdownCount', STATE.shutdownCount);
+                localStorage.setItem('wallpaperType', STATE.wallpaperType);
+                localStorage.setItem('timeReset', STATE.timeReset);
+                localStorage.setItem('memoEntries', JSON.stringify(STATE.memoEntries));
+                localStorage.setItem('permanentLocked', STATE.permanentLocked);
+                localStorage.setItem('saniwaTriggered', STATE.saniwaTriggered);
+                localStorage.setItem('ctxPersonalizeDisabled', STATE.contextMenuPersonalizeDisabled);
+                localStorage.setItem('userFeedbackName', STATE.userFeedbackName);
+            }
+
+            // ============ DOM REFS ============
+            const desktop = document.getElementById('desktop');
+            const desktopIconsContainer = document.getElementById('desktop-icons');
+            const taskbar = document.getElementById('taskbar');
+            const startBtn = document.getElementById('start-btn');
+            const startMenu = document.getElementById('start-menu');
+            const taskbarWindows = document.getElementById('taskbar-windows');
+            const taskbarTime = document.getElementById('taskbar-time');
+            const blackOverlay = document.getElementById('black-overlay');
+            const flashOverlay = document.getElementById('flash-overlay');
+            const cmdWindow = document.getElementById('cmd-window');
+            const modalOverlay = document.getElementById('modal-overlay');
+            const modalBox = document.getElementById('modal-box');
+            const terminalOverlay = document.getElementById('terminal-overlay');
+            const permanentModal = document.getElementById('permanent-modal');
+            const permModalContent = document.getElementById('perm-modal-content');
+            const notificationArea = document.getElementById('notification-area');
+            const windowContainer = document.getElementById('window-container');
+            const desktopContextMenu = document.getElementById('desktop-context-menu');
+            const ctxPersonalize = document.getElementById('ctx-personalize');
+
+            let activeWindowId = null;
+            let windowZIndex = 50;
+            let startMenuOpen = false;
+            let desktopIconPositions = {};
+            let terminalAttempts = 0;
+            let taskbarTimeClickCount = 0;
+            let taskbarTimeClickTimer = null;
+            let cmdShutdownPhase = null;
+            let flashPhase = null;
+            let terminalMode = null;
+            let terminalPasswordAttempts = 0;
+            let terminalUsernameAttempts = 0;
+            let terminalAwaitingCommand = false;
+            let shutdownInProgress = false;
+            let oldUserAccessCount = 0;        // 用于记录访问次数，每次打开我的电脑窗口重置
+            // ============ DESKTOP WALLPAPER ============
+            function applyWallpaper() {
+    desktop.classList.remove('wallpaper-default', 'wallpaper-sepia', 'wallpaper-black');
+    if (STATE.wallpaperType === 'eye') {
+        desktop.style.background = "url('bg_eye.jpg') center/cover no-repeat";
+        desktop.style.filter = "none";
+    } else if (STATE.wallpaperType === 'sepia') {
+        desktop.classList.add('wallpaper-sepia');
+        desktop.style.background = ""; // 清除之前图片样式
+    } else if (STATE.wallpaperType === 'black') {
+        desktop.classList.add('wallpaper-black');
+        desktop.style.background = "";
+    } else {
+        desktop.classList.add('wallpaper-default');
+        desktop.style.background = "";
+    }
+}
+            applyWallpaper();
+
+            // ============ DESKTOP ICONS ============
+            const desktopIconDefs = [
+                { id: 'gov-site', label: '時政公告', emoji: '📋', x: 15, y: 15 },
+                { id: 'honmaru', label: '本丸管理', emoji: '🏯', x: 15, y: 105 },
+                { id: 'sword-book', label: '刀帳', emoji: '⚔️', x: 15, y: 195 },
+                { id: 'mail', label: '時政郵件', emoji: '📧', x: 15, y: 285 },
+                { id: 'memo', label: '私人備忘錄', emoji: '📝', x: 15, y: 375 },
+                { id: 'mycomputer', label: '我的電腦', emoji: '💻', x: 120, y: 15 },
+                { id: 'shutdown-form', label: '關機申請表.txt', emoji: '📄', x: 120, y: 105, hidden: true },
+            ];
+
+            function renderDesktopIcons() {
+                desktopIconsContainer.innerHTML = '';
+                desktopIconDefs.forEach(def => {
+                    if (def.hidden && def.id === 'shutdown-form' && STATE.shutdownCount < 4 && !
+                        sessionStorage.getItem('showShutdownForm')) {
+                        return;
+                    }
+                    if (def.id === 'shutdown-form' && STATE.shutdownCount >= 4 && !sessionStorage.getItem(
+                            'showShutdownForm') && STATE.shutdownCount < 5) {
+                        // Show only during session after 4th shutdown
+                    }
+                    if (def.id === 'shutdown-form' && !sessionStorage.getItem('showShutdownForm') && STATE
+                        .shutdownCount < 4) return;
+                    if (def.id === 'shutdown-form' && sessionStorage.getItem('showShutdownForm') === 'consumed')
+                        return;
+
+                    const icon = document.createElement('div');
+                    icon.className = 'desktop-icon';
+                    icon.setAttribute('data-icon-id', def.id);
+                    icon.style.left = (def.x || 15) + 'px';
+                    icon.style.top = (def.y || 15) + 'px';
+                    icon.innerHTML = `
+                <div class="icon-img">${def.emoji}</div>
+                <div class="icon-label">${def.label}</div>
+              `;
+                    icon.addEventListener('dblclick', () => handleIconDoubleClick(def.id));
+                    icon.addEventListener('mousedown', (e) => handleIconMouseDown(e, icon, def.id));
+                    desktopIconsContainer.appendChild(icon);
+                });
+
+                // If permanent locked, arrange icons in circle
+                if (STATE.permanentLocked) {
+                    arrangeIconsInCircle();
+                }
+            }
+
+            function arrangeIconsInCircle() {
+                const icons = desktopIconsContainer.querySelectorAll('.desktop-icon');
+                const centerX = window.innerWidth / 2 - 40;
+                const centerY = (window.innerHeight - 40) / 2 - 40;
+                const radius = Math.min(centerX, centerY) * 0.7;
+                const count = icons.length;
+                icons.forEach((icon, i) => {
+                    const angle = (i / count) * Math.PI * 2 - Math.PI / 2;
+                    const x = centerX + Math.cos(angle) * radius;
+                    const y = centerY + Math.sin(angle) * radius;
+                    icon.style.left = x + 'px';
+                    icon.style.top = y + 'px';
+                    icon.classList.add('circular-layout');
+                });
+            }
+
+            // Icon dragging
+            let draggingIcon = null;
+            let dragOffsetX = 0;
+            let dragOffsetY = 0;
+            let dragStartX = 0;
+            let dragStartY = 0;
+            let isDragging = false;
+
+            function handleIconMouseDown(e, iconEl, iconId) {
+                if (e.button !== 0) return;
+                if (STATE.permanentLocked) return;
+                e.preventDefault();
+                draggingIcon = iconEl;
+                const rect = iconEl.getBoundingClientRect();
+                dragOffsetX = e.clientX - rect.left;
+                dragOffsetY = e.clientY - rect.top;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                isDragging = false;
+            }
+
+            document.addEventListener('mousemove', (e) => {
+                if (!draggingIcon) return;
+                const dx = e.clientX - dragStartX;
+                const dy = e.clientY - dragStartY;
+                if (Math.abs(dx) > 3 || Math.abs(dy) > 3) isDragging = true;
+                if (isDragging) {
+                    draggingIcon.classList.add('dragging');
+                    draggingIcon.style.left = (e.clientX - dragOffsetX) + 'px';
+                    draggingIcon.style.top = (e.clientY - dragOffsetY) + 'px';
+                    draggingIcon.style.position = 'absolute';
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (draggingIcon) {
+                    draggingIcon.classList.remove('dragging');
+                    draggingIcon = null;
+                    isDragging = false;
+                }
+            });
+
+            function handleIconDoubleClick(iconId) {
+                if (isDragging) return;
+                switch (iconId) {
+                    case 'gov-site':
+                        openGovSiteWindow();
+                        break;
+                    case 'honmaru':
+                        openSimpleWindow('本丸管理', '本丸目前運作正常。\n\n審神者狀態：在勤\n近侍：压切長谷部\n\n無待處理事項。');
+                        break;
+                    case 'sword-book':
+                        openSwordBookWindow();
+                        break;
+                    case 'mail':
+                        openMailWindow();
+                        break;
+                    case 'memo':
+                        openMemoWindow();
+                        break;
+                    case 'mycomputer':
+                        openMyComputerWindow();
+                        break;
+                    case 'shutdown-form':
+                        openShutdownFormWindow();
+                        break;
+                }
+            }
+
+            // ============ WINDOW MANAGEMENT ============
+            function createWindow(id, title, width = 500, height = 400, left = null, top = null) {
+                const existing = document.getElementById('window-' + id);
+                if (existing) {
+                    bringToFront(existing);
+                    return existing;
+                }
+                const win = document.createElement('div');
+                win.className = 'window';
+                win.id = 'window-' + id;
+                win.style.width = width + 'px';
+                win.style.height = height + 'px';
+                win.style.left = left || (80 + Math.random() * 200) + 'px';
+                win.style.top = top || (50 + Math.random() * 150) + 'px';
+                win.style.zIndex = ++windowZIndex;
+                win.setAttribute('data-window-id', id);
+                win.innerHTML = `
+              <div class="title-bar" data-window-id="${id}">
+                <span class="title-text">${title}</span>
+                <div class="win-buttons">
+                  <span class="win-btn minimize-btn">─</span>
+                  <span class="win-btn maximize-btn">□</span>
+                  <span class="win-btn close-btn" data-close="${id}">✕</span>
+                </div>
+              </div>
+              <div class="window-content" id="content-${id}"></div>
+              <div class="window-resize-handle"></div>
+            `;
+                windowContainer.appendChild(win);
+                win.style.display = 'block';
+                setupWindowDrag(win);
+                setupWindowResize(win);
+                win.addEventListener('mousedown', () => bringToFront(win));
+                win.querySelector('.close-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeWindow(id);
+                });
+                win.querySelector('.minimize-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    win.style.display = 'none';
+                    updateTaskbarWindows();
+                });
+                win.querySelector('.maximize-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (win.style.width === '100vw' || win.style.width === '100%') {
+                        win.style.width = width + 'px';
+                        win.style.height = height + 'px';
+                        win.style.left = (80 + Math.random() * 200) + 'px';
+                        win.style.top = (50 + Math.random() * 150) + 'px';
+                    } else {
+                        win.style.width = '100vw';
+                        win.style.height = 'calc(100vh - 40px)';
+                        win.style.left = '0';
+                        win.style.top = '0';
+                    }
+                });
+                updateTaskbarWindows();
+                return win;
+                // 在 createWindow 内部，计算默认位置处
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+if (left === null) {
+    left = isMobile ? '5vw' : (80 + Math.random() * 200) + 'px';
+}
+if (top === null) {
+    top = isMobile ? '80px' : (50 + Math.random() * 150) + 'px';
+}
+            }
+
+           function bringToFront(win) {
+    // 如果窗口是隐藏状态（最小化），先显示
+    if (win.style.display === 'none') {
+        win.style.display = 'block';
+        // 更新任务栏，让窗口重新出现
+        updateTaskbarWindows();
+    }
+    win.style.zIndex = ++windowZIndex;
+    activeWindowId = win.getAttribute('data-window-id');
+    document.querySelectorAll('.window').forEach(w => w.classList.remove('active'));
+    win.classList.add('active');
+    updateTaskbarWindows();
+}
+
+            function closeWindow(id) {
+                const win = document.getElementById('window-' + id);
+                if (win) {
+                    win.remove();
+                    if (activeWindowId === id) activeWindowId = null;
+                    updateTaskbarWindows();
+                }
+            }
+
+            function getWindow(id) {
+                return document.getElementById('window-' + id);
+            }
+
+            function setupWindowDrag(win) {
+                const titleBar = win.querySelector('.title-bar');
+                let startX, startY, origLeft, origTop;
+                const onTouchStart = (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+        origLeft = parseInt(win.style.left) || 0;
+        origTop = parseInt(win.style.top) || 0;
+        document.addEventListener('touchmove', onTouchMove);
+        document.addEventListener('touchend', onTouchEnd);
+    };
+    const onTouchMove = (e) => {
+        const touch = e.touches[0];
+        win.style.left = (origLeft + touch.clientX - startX) + 'px';
+        win.style.top = (origTop + touch.clientY - startY) + 'px';
+    };
+    const onTouchEnd = () => {
+        document.removeEventListener('touchmove', onTouchMove);
+        document.removeEventListener('touchend', onTouchEnd);
+    };
+                titleBar.addEventListener('mousedown', (e) => {
+                    if (e.target.closest('.win-btn')) return;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    origLeft = parseInt(win.style.left) || 0;
+                    origTop = parseInt(win.style.top) || 0;
+                    const onMove = (ev) => {
+                        win.style.left = (origLeft + ev.clientX - startX) + 'px';
+                        win.style.top = (origTop + ev.clientY - startY) + 'px';
+                    };
+                    const onUp = () => {
+                        document.removeEventListener('mousemove', onMove);
+                        document.removeEventListener('mouseup', onUp);
+                    };
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                });
+            }
+
+            function setupWindowResize(win) {
+                const handle = win.querySelector('.window-resize-handle');
+                let startX, startY, origW, origH;
+                handle.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    origW = parseInt(win.style.width) || 500;
+                    origH = parseInt(win.style.height) || 400;
+                    const onMove = (ev) => {
+                        win.style.width = Math.max(280, origW + ev.clientX - startX) + 'px';
+                        win.style.height = Math.max(150, origH + ev.clientY - startY) + 'px';
+                    };
+                    const onUp = () => {
+                        document.removeEventListener('mousemove', onMove);
+                        document.removeEventListener('mouseup', onUp);
+                    };
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                });
+            }
+
+            function updateTaskbarWindows() {
+                taskbarWindows.innerHTML = '';
+                document.querySelectorAll('.window').forEach(win => {
+                    if (win.style.display === 'none') return;
+                    const id = win.getAttribute('data-window-id');
+                    const title = win.querySelector('.title-text').textContent;
+                    const item = document.createElement('div');
+                    item.className = 'taskbar-window-item';
+                    if (id === activeWindowId) item.classList.add('active');
+                    item.textContent = title;
+                    item.addEventListener('click', () => {
+                        win.style.display = 'block';
+                        bringToFront(win);
+                    });
+                    taskbarWindows.appendChild(item);
+                });
+            }
+
+            // ============ SPECIFIC WINDOWS ============
+            function openSimpleWindow(title, text) {
+                const id = 'simple-' + Date.now();
+                const win = createWindow(id, title, 400, 300);
+                const content = document.getElementById('content-' + id);
+                content.innerHTML = `<pre style="white-space:pre-wrap;font-family:inherit;">${text}</pre>`;
+                bringToFront(win);
+            }
+
+            function openSwordBookWindow() {
+                const id = 'sword-book';
+                const win = createWindow(id, '刀帳', 450, 400);
+                const content = document.getElementById('content-' + id);
+                if (STATE.wallpaperType === 'eye' && !STATE.permanentLocked) {
+        // 无限滚动列表：初始显示30条，滚动到底部追加
+        let itemCount = 30;
+        const listContainer = document.createElement('div');
+        listContainer.style.cssText = 'height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 5px;';
+        
+        function addItems(start, count) {
+            for (let i = 0; i < count; i++) {
+                const div = document.createElement('div');
+                div.textContent = `压切長谷部压切長谷部压切長谷部压切長谷部压切長谷部压切長谷部`;
+                div.style.padding = '6px';
+                div.style.borderBottom = '1px solid #eee';
+                listContainer.appendChild(div);
+            }
+        }
+        
+        addItems(0, itemCount);
+        
+        listContainer.addEventListener('scroll', () => {
+            if (listContainer.scrollTop + listContainer.clientHeight >= listContainer.scrollHeight - 10) {
+                const newItems = 20;
+                addItems(itemCount, newItems);
+                itemCount += newItems;
+            }
+        });
+        
+        content.innerHTML = '<h3 style="margin-bottom:10px;">刀劍男士一覽</h3>';
+        content.appendChild(listContainer);
+        content.innerHTML += '<p style="margin-top:12px;font-size:10px;color:#888;">共計 ∞ 名刀劍男士在籍</p>';
+    }
+                else{ content.innerHTML = `
+              <h3 style="margin-bottom:10px;">刀劍男士一覽</h3>
+              <table style="width:100%;border-collapse:collapse;font-size:11px;">
+                <tr style="border-bottom:1px solid #ccc;"><td>三日月宗近</td><td>太刀</td><td>狀態：正常</td></tr>
+                <tr style="border-bottom:1px solid #ccc;"><td>压切長谷部</td><td>打刀</td><td>狀態：近侍</td></tr>
+                <tr style="border-bottom:1px solid #ccc;"><td>鶴丸國永</td><td>太刀</td><td>狀態：正常</td></tr>
+                <tr style="border-bottom:1px solid #ccc;"><td>藥研藤四郎</td><td>短刀</td><td>狀態：正常</td></tr>
+                <tr style="border-bottom:1px solid #ccc;"><td>燭台切光忠</td><td>太刀</td><td>狀態：正常</td></tr>
+              </table>
+              <p style="margin-top:12px;font-size:10px;color:#888;">共計 5 名刀劍男士在籍</p>
+            `;}
+                bringToFront(win);
+            }
+
+            function openMailWindow() {
+                const id = 'mail';
+                const win = createWindow(id, '時政郵件', 500, 420);
+                const content = document.getElementById('content-' + id);
+                content.innerHTML = `
+              <div style="border-bottom:1px solid #ddd;padding:8px;cursor:pointer;background:#f9f9f9;" id="mail-item-1">
+                <span style="font-weight:bold;">無標題</span>
+                <span style="color:#999;font-size:10px;margin-left:10px;">發件人：</span><span style="color:#ccc;font-size:10px;" id="mail-sender-1" title="該用戶已神隱">███</span>
+              </div>
+              <div style="padding:8px;color:#999;font-size:11px;">共 1 封郵件</div>
+              <div id="mail-preview" style="padding:15px;display:none;border:1px solid #eee;margin-top:10px;"></div>
+            `;
+                const mailItem = content.querySelector('#mail-item-1');
+                const mailPreview = content.querySelector('#mail-preview');
+                const mailSender = content.querySelector('#mail-sender-1');
+                mailSender.addEventListener('mouseenter', () => {
+                    showTooltipNear(mailSender, '該用戶已神隱');
+                });
+                mailItem.addEventListener('click', () => {
+                    mailPreview.style.display = 'block';
+                    mailPreview.innerHTML = '<span id="mail-body-text">help me</span>';
+                    const bodyText = document.getElementById('mail-body-text');
+                    setTimeout(() => {
+                        if (bodyText) bodyText.textContent = '本丸工作愉快';
+                    }, 500);
+                });
+                bringToFront(win);
+            }
+
+            function showTooltipNear(el, text) {
+                const existing = document.querySelector('.custom-tooltip');
+                if (existing) existing.remove();
+                const tip = document.createElement('div');
+                tip.className = 'custom-tooltip';
+                tip.textContent = text;
+                tip.style.cssText = `
+              position:fixed;background:#ffffcc;border:1px solid #888;padding:4px 10px;font-size:11px;
+              z-index:3000;pointer-events:none;white-space:nowrap;box-shadow:2px 2px 4px rgba(0,0,0,0.3);
+            `;
+                document.body.appendChild(tip);
+                const rect = el.getBoundingClientRect();
+                tip.style.left = rect.left + 'px';
+                tip.style.top = (rect.bottom + 5) + 'px';
+                el.addEventListener('mouseleave', () => { tip.remove(); }, { once: true });
+            }
+
+            function openMemoWindow() {
+                const id = 'memo';
+                const win = createWindow(id, '私人備忘錄', 480, 420);
+                const content = document.getElementById('content-' + id);
+                renderMemoContent(content);
+                bringToFront(win);
+            }
+
+            function renderMemoContent(content) {
+                content.innerHTML = `
+              <h4>備忘錄條目</h4>
+              <div id="memo-entries-list" style="margin-bottom:10px;max-height:180px;overflow-y:auto;">
+                ${STATE.memoEntries.map((entry, i) => `
+                  <div style="padding:6px;border-bottom:1px solid #eee;cursor:pointer;" data-memo-index="${i}">
+                    ${entry.substring(0, 50)}${entry.length > 50 ? '...' : ''}
+                  </div>
+                `).join('')}
+                ${STATE.memoEntries.length === 0 ? '<div style="color:#999;">尚無條目</div>' : ''}
+              </div>
+              <textarea id="memo-textarea" style="width:100%;height:100px;font-family:inherit;padding:6px;border:1px solid #ccc;resize:vertical;" placeholder="輸入新條目..."></textarea>
+              <button id="memo-save-btn" style="margin-top:8px;padding:6px 18px;background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;cursor:pointer;">保存</button>
+              <button id="memo-delete-btn" style="margin-top:8px;padding:6px 18px;background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;cursor:pointer;margin-left:6px;">刪除選中條目</button>
+            `;
+                const saveBtn = content.querySelector('#memo-save-btn');
+                const deleteBtn = content.querySelector('#memo-delete-btn');
+                const textarea = content.querySelector('#memo-textarea');
+                const entriesList = content.querySelector('#memo-entries-list');
+                let selectedMemoIndex = -1;
+
+                entriesList.addEventListener('click', (e) => {
+                    const div = e.target.closest('[data-memo-index]');
+                    if (div) {
+                        selectedMemoIndex = parseInt(div.getAttribute('data-memo-index'));
+                        textarea.value = STATE.memoEntries[selectedMemoIndex];
+                        entriesList.querySelectorAll('div').forEach(d => d.style.background = '');
+                        div.style.background = '#e0e0ff';
+                    }
+                });
+
+                saveBtn.addEventListener('click', () => {
+                    const val = textarea.value.trim();
+                    if (val === '') return;
+                    // FORCE REPLACE
+                    if (val.toLowerCase() === 'past') {
+        const hiddenNote1 = '長谷部已經不正常了，一定要離開這裡。';
+        const hiddenNote2 = '这不是我的本丸！';
+        STATE.memoEntries.push(hiddenNote1);
+         STATE.memoEntries.push(hiddenNote2);
+        saveState();
+        textarea.value = '';
+        selectedMemoIndex = -1;
+        renderMemoContent(content);
+        
+        return;
+    }
+        const likeText = '最喜欢长谷部了';
+    const likeTextTraditional = '最喜歡長谷部了';
+    if (val === likeText || val === likeTextTraditional) {
+        // 保存用户输入的内容（不篡改）
+        if (selectedMemoIndex >= 0 && selectedMemoIndex < STATE.memoEntries.length) {
+            STATE.memoEntries[selectedMemoIndex] = val;
+        } else {
+            STATE.memoEntries.push(val);
+        }
+        saveState();
+        textarea.value = '';
+        selectedMemoIndex = -1;
+        renderMemoContent(content);
+        // 震惊回复
+        showNotification('什…什麼？！您…您竟然……！不，這不可能…！');
+        return;
+    }
+                    const forcedText = '最喜歡長谷部了。';
+                    if (selectedMemoIndex >= 0 && selectedMemoIndex < STATE.memoEntries.length) {
+                        STATE.memoEntries[selectedMemoIndex] = forcedText;
+                    } else {
+                        STATE.memoEntries.push(forcedText);
+                    }
+                    saveState();
+                    textarea.value = '';
+                    selectedMemoIndex = -1;
+                    renderMemoContent(content);
+                    showNotification('主，我也最喜歡您了。永遠。');
+                });
+
+                deleteBtn.addEventListener('click', () => {
+                    if (selectedMemoIndex >= 0 && selectedMemoIndex < STATE.memoEntries.length) {
+                        STATE.memoEntries.splice(selectedMemoIndex, 1);
+                        saveState();
+                        textarea.value = '';
+                        selectedMemoIndex = -1;
+                        renderMemoContent(content);
+                    }
+                });
+            }
+
+            function openMyComputerWindow() {
+                const id = 'mycomputer';
+                const win = createWindow(id, '我的電腦', 500, 400);
+                const content = document.getElementById('content-' + id);
+                content.innerHTML = `
+              <div style="font-weight:bold;margin-bottom:8px;">📁 C:\</div>
+              <div style="display:flex;align-items:center;gap:8px;padding:6px;cursor:pointer;border:1px solid #ddd;margin:4px 0;"
+                   id="folder-old-user">
+                📁 <span>_old_user</span>
+              </div>
+              <div style="padding:6px;color:#999;">📄 system.ini</div>
+              <div style="padding:6px;color:#999;">📄 autoexec.bat</div>
+            `;
+            let accessCount = 0; 
+                const folderOldUser = content.querySelector('#folder-old-user');
+                folderOldUser.addEventListener('dblclick', () => {
+                    if (STATE.wallpaperType === 'eye' && !STATE.permanentLocked) {
+        accessCount++;
+        if (accessCount >= 5) {
+            // 触发花屏特效
+            showCrashEffect(() => {
+                closeWindow('mycomputer');   // 关闭我的电脑窗口
+                // 可选：显示一条长谷部的质问通知
+                showNotification('您為什麼不相信我？');
+            });
+        } else {
+            showNotification(`訪問 _old_user  – 資料損壞，已自動清理。`);
+        }
+    }
+                    else{showNotification('那是損壞的數據，我已經為您清理乾淨了。');
+                    // Also show access denied briefly
+                    const denied = document.createElement('div');
+                    denied.style.cssText =
+                        'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border:2px solid red;padding:20px;z-index:3000;font-weight:bold;';
+                    denied.textContent = '⚠️ 訪問被拒絕';
+                    document.body.appendChild(denied);
+                    setTimeout(() => denied.remove(), 1500);}
+                });
+                bringToFront(win);
+            }
+
+            function openShutdownFormWindow() {
+                const id = 'shutdown-form';
+                const win = createWindow(id, '關機申請表.txt', 420, 320);
+                const content = document.getElementById('content-' + id);
+                content.innerHTML = `
+              <pre style="font-family:'Courier New',monospace;font-size:12px;line-height:1.6;">
+        ╔═══════════════════════════╗
+        ║    關 機 申 請 表          ║
+        ╠═══════════════════════════╣
+        ║ 理由：                     ║
+        ║ <input id="shutdown-reason" style="width:180px;font-family:inherit;border:none;border-bottom:1px solid #000;outline:none;"> ║
+        ╠═══════════════════════════╣
+        ║ 審批人：压切長谷部          ║
+        ╚═══════════════════════════╝
+              </pre>
+              <button id="submit-shutdown-form" style="margin-top:10px;padding:6px 18px;background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;cursor:pointer;">提交</button>
+            `;
+                const reasonInput = content.querySelector('#shutdown-reason');
+                const submitBtn = content.querySelector('#submit-shutdown-form');
+                submitBtn.addEventListener('click', () => {
+                    reasonInput.value = '您在害怕我。';
+                    showNotification('申請已提交。審批人：压切長谷部。');
+                    setTimeout(() => {
+                        closeWindow(id);
+                        sessionStorage.setItem('showShutdownForm', 'consumed');
+                        renderDesktopIcons();
+                    }, 1500);
+                });
+                bringToFront(win);
+            }
+
+            // ============ GOV SITE WINDOW ============
+            function openGovSiteWindow() {
+                const id = 'gov-site';
+                const win = createWindow(id, '時之政府 - 公告系統', 700, 550);
+                const content = document.getElementById('content-' + id);
+                renderGovSiteMain(content);
+                bringToFront(win);
+            }
+
+            function renderGovSiteMain(content) {
+                const feedbackName = STATE.userFeedbackName || '匿名';
+                content.innerHTML = `
+              <div class="gov-site">
+                <div class="gov-header">
+                  <span class="gov-title">時之政府</span>
+                  <div class="hinomaru"></div>
+                </div>
+                <div style="color:#8b0000;font-size:14px;margin-bottom:15px;letter-spacing:2px;">本丸相關公告</div>
+                <div class="gov-announcement-list" id="gov-announcement-list">
+                  ${STATE.userFeedbackName ? `
+                  <div class="gov-announcement-item" style="background:#fff8f8;">
+                    <div class="ann-title">關於審神者${feedbackName}提出的疑問，本丸決定不予受理。</div>
+                    <div class="ann-meta">
+                      <span>日期：本丸曆 即日</span>
+                      <span>署名：代理審神者 压切長谷部</span>
+                      <span class="ann-seal">壓切</span>
+                    </div>
+                  </div>` : ''}
+                  <div class="gov-announcement-item" data-ann="1">
+                    <div class="ann-title">《關於本丸靈力資源分配的補充通知》</div>
+                    <div class="ann-meta">
+                      <span>日期：令和7年5月32日</span>
+                      <span>署名：代理審神者 压切長谷部</span>
+                      <span class="ann-seal">壓切</span>
+                    </div>
+                  </div>
+                  <div class="gov-announcement-item" data-ann="2">
+                    <div class="ann-title">《刀劍男士修行申請流程簡化》</div>
+                    <div class="ann-meta">
+                      <span>日期：本丸曆3年</span>
+                      <span>署名：代理審神者 压切長谷部</span>
+                    </div>
+                  </div>
+                  <div class="gov-announcement-item" data-ann="3">
+                    <div class="ann-title">《審神者定期健康檢查實施要項》</div>
+                    <div class="ann-meta">
+                      <span>日期：32月第5週</span>
+                      <span>署名：代理審神者 压切長谷部</span>
+                    </div>
+                  </div>
+                  <div class="gov-announcement-item" data-ann="4a">
+                    <div class="ann-title">《近侍代管審神者通訊設備以提升效率》</div>
+                    <div class="ann-meta">
+                      <span>日期：本丸曆3年</span>
+                      <span>署名：代理審神者 压切長谷部</span>
+                    </div>
+                  </div>
+                  <div class="gov-announcement-item" data-ann="4b">
+                    <div class="ann-title">《近侍不得持有審神者任何私人物品》</div>
+                    <div class="ann-meta">
+                      <span>日期：本丸曆3年</span>
+                      <span>署名：代理審神者 压切長谷部</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="gov-archive-link" id="gov-archive-link">📁 歷史公告歸檔</div>
+                <div style="margin-top:8px;">
+                  <div class="gov-contact-form">
+                    <div style="font-weight:bold;margin-bottom:6px;">聯繫我們</div>
+                    <label>收件人：</label>
+                    <input type="text" id="gov-contact-recipient" value="時之政府" readonly style="background:#f0f0f0;">
+                    <label>您的意見：</label>
+                    <textarea id="gov-contact-message" placeholder="請輸入您的意見..."></textarea>
+                    <button class="send-btn" id="gov-send-btn">發送</button>
+                  </div>
+                </div>
+                <div class="gov-old-entry" id="gov-old-entry-link">舊版網站入口</div>
+                <div class="gov-footer-note">數據由HH提供</div>
+              </div>
+            `;
+
+                // Click announcement items
+                content.querySelectorAll('.gov-announcement-item[data-ann]').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const annId = item.getAttribute('data-ann');
+                        renderGovDetail(content, annId);
+                    });
+                });
+
+                // Archive link
+                content.querySelector('#gov-archive-link').addEventListener('click', () => {
+                    renderGovArchive(content);
+                });
+
+                // Contact form
+                const recipientInput = content.querySelector('#gov-contact-recipient');
+                const messageTextarea = content.querySelector('#gov-contact-message');
+                const sendBtn = content.querySelector('#gov-send-btn');
+                messageTextarea.addEventListener('input', () => {
+                    if (messageTextarea.value.trim().length > 0) {
+                        recipientInput.value = '压切長谷部';
+                    } else {
+                        recipientInput.value = '時之政府';
+                    }
+                });
+                sendBtn.addEventListener('click', () => {
+                    const msg = messageTextarea.value.trim();
+                    if (!msg) return;
+                    // Extract a name from the message (first few chars)
+                    let extractedName = msg.substring(0, 8).replace(/[^\w\u4e00-\u9fff]/g, '');
+                    if (extractedName.length === 0) extractedName = '匿名';
+                    STATE.userFeedbackName = extractedName;
+                    saveState();
+                    messageTextarea.value = '';
+                    recipientInput.value = '時之政府';
+                    renderGovSiteMain(content);
+                    showNotification('意見已發送。');
+                });
+
+                // Old entry link
+                content.querySelector('#gov-old-entry-link').addEventListener('click', () => {
+                    renderGovOldSite(content);
+                });
+            }
+
+            function renderGovDetail(content, annId) {
+                const titles = {
+                    '1': '《關於本丸靈力資源分配的補充通知》',
+                    '2': '《刀劍男士修行申請流程簡化》',
+                    '3': '《審神者定期健康檢查實施要項》',
+                    '4a': '《近侍代管審神者通訊設備以提升效率》',
+                    '4b': '《近侍不得持有審神者任何私人物品》',
+                };
+                const bodyTexts = {
+                    '1': '為進一步優化本丸靈力資源配置，經代理審神者压切長谷部審議，現發布補充通知如下：\n\n一、所有靈力分配須經近侍審批。\n二、審神者個人靈力使用需提交書面申請。\n三、本通知自發布之日起生效。\n\n<span class="hidden-red-text">前審神者的申請已被駁回。</span>',
+                    '2': '為提升刀劍男士修行效率，簡化申請流程如下：\n\n一、取消審神者簽字環節。\n二、近侍可直接批准修行申請。\n三、本流程即刻實施。\n\n<span class="hidden-red-text">本公告由長谷部為您真誠編輯。</span>',
+                    '3': '為保障審神者身心健康，定期健康檢查實施如下：\n\n一、檢查由近侍全程陪同。\n二、檢查結果僅近侍有權查閱。\n三、異常結果將直接上報時之政府。\n\n<span class="hidden-red-text">本公告由長谷部為您真誠編輯。</span>',
+                    '4a': '為提升本丸運作效率，近侍將代管審神者通訊設備。審神者對外聯絡需經近侍轉達。即日生效。\n\n<span class="hidden-red-text">前審神者的通訊記錄已全部歸檔。</span>',
+                    '4b': '重申：近侍不得持有審神者任何私人物品。違者將嚴懲。本規定永久有效。\n\n<span class="hidden-red-text">本公告由長谷部為您真誠編輯。</span>',
+                };
+                content.innerHTML = `
+              <div class="gov-site">
+                <div class="gov-header">
+                  <span class="gov-title">時之政府</span>
+                  <div class="hinomaru"></div>
+                </div>
+                <button id="gov-back-btn" style="background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;padding:4px 12px;cursor:pointer;margin-bottom:12px;">← 返回公告列表</button>
+                <h3>${titles[annId] || '公告詳情'}</h3>
+                <div style="margin-top:15px;line-height:1.8;font-size:14px;">${bodyTexts[annId] || '（正文內容）'}</div>
+                <div class="gov-footer-note">數據由長谷部提供</div>
+              </div>
+            `;
+                content.querySelector('#gov-back-btn').addEventListener('click', () => renderGovSiteMain(content));
+            }
+
+            function renderGovArchive(content) {
+                content.innerHTML = `
+              <div class="gov-site">
+                <div class="gov-header">
+                  <span class="gov-title">時之政府</span>
+                  <div class="hinomaru"></div>
+                </div>
+                <button id="gov-back-from-archive" style="background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;padding:4px 12px;cursor:pointer;margin-bottom:12px;">← 返回公告列表</button>
+                <h4>歷史公告歸檔</h4>
+                <div style="border:1px solid #ddd;padding:12px;margin-top:10px;cursor:pointer;" id="archive-item">
+                  <div style="font-weight:bold;">關於XX本丸審神者神隱事件的調查報告（已結案）</div>
+                  <div style="font-size:10px;color:#999;">歸檔日期：本丸曆 永久</div>
+                </div>
+                <div id="archive-detail" style="display:none;margin-top:15px;padding:12px;background:#f9f9f9;border:1px solid #eee;"></div>
+              </div>
+            `;
+                content.querySelector('#gov-back-from-archive').addEventListener('click', () => renderGovSiteMain(
+                    content));
+                content.querySelector('#archive-item').addEventListener('click', () => {
+                    const detail = content.querySelector('#archive-detail');
+                    detail.style.display = 'block';
+                    detail.innerHTML = `
+                <p style="color:#555;">報告正文：</p>
+                <p style="color:#999;font-style:italic;">███▒▒▒░░░■■■□□□⋯⋯數據損壞⋯⋯</p>
+                <p style="color:#999;font-style:italic;">░░░▒▒▒▓▓▓⋯⋯無法還原⋯⋯</p>
+                <p style="margin-top:10px;font-weight:bold;color:#333;">調查人：長谷部。</p>
+              `;
+                });
+            }
+
+            function renderGovOldSite(content) {
+                content.innerHTML = `
+              <div class="gov-site" style="background:#e8e0d5;font-family:'SimSun','宋体',serif;">
+                <div style="border:2px solid #8b0000;padding:15px;background:#fdf5e6;">
+                  <h4 style="color:#8b0000;">【緊急】某本丸審神者突然失蹤，時政已介入調查。</h4>
+                  <div style="font-size:11px;color:#666;">發布時間：一年前</div>
+                  <div style="margin-top:10px;line-height:1.7;">
+                    據悉，該本丸審神者於夜間執勤時突然失去聯繫。時之政府已派遣調查小組進駐。目前尚無進一步消息。
+                  </div>
+                  <div style="margin-top:12px;padding:8px;background:#fff;border:1px dashed #ccc;font-size:10px;color:#999;">
+                    <span style="text-decoration:line-through;color:#c00;">評論：是那個近侍幹的……</span>
+                    <span style="color:#aaa;margin-left:8px;">[此評論已被撤回]</span>
+                  </div>
+                  <button id="return-new-version" style="margin-top:12px;padding:6px 16px;background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;cursor:pointer;">返回新版</button>
+                </div>
+              </div>
+            `;
+                content.querySelector('#return-new-version').addEventListener('click', () => {
+                    showModal(
+                        '您正在瀏覽的是最新、最權威的信息。不要回頭。',
+                        '压切長谷部',
+                        () => {
+                            hideModal();
+                            renderGovSiteMain(content);
+                        }
+                    );
+                });
+            }
+
+            function showModal(message, signature, callback) {
+                modalBox.innerHTML = `
+              <p style="font-size:17px;letter-spacing:2px;">${message}</p>
+              <p style="font-size:12px;color:#888;margin-top:10px;">— ${signature}</p>
+              <button class="modal-btn" id="modal-ok-btn">確認</button>
+            `;
+                modalOverlay.style.display = 'flex';
+                document.getElementById('modal-ok-btn').addEventListener('click', () => {
+                    if (callback) callback();
+                });
+            }
+
+            function hideModal() {
+                modalOverlay.style.display = 'none';
+            }
+function showCrashEffect(onComplete) {
+    // 创建全屏花屏覆盖层
+    const crashDiv = document.createElement('div');
+    crashDiv.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: repeating-linear-gradient(45deg, #ff0000, #ff0000 10px, #ffffff 10px, #ffffff 20px);
+        z-index: 10000;
+        animation: glitch 0.2s infinite;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Courier New', monospace;
+        font-size: 32px;
+        font-weight: bold;
+        color: #fff;
+        text-shadow: 2px 2px 0 #000;
+        text-align: center;
+    `;
+    crashDiv.innerHTML = '您為什麼不相信我？';
+    document.body.appendChild(crashDiv);
+
+    // 添加 glitch 动画（如果尚未定义）
+    if (!document.querySelector('#crash-glitch-style')) {
+        const style = document.createElement('style');
+        style.id = 'crash-glitch-style';
+        style.textContent = `
+            @keyframes glitch {
+                0% { transform: translate(0); filter: hue-rotate(0deg); }
+                20% { transform: translate(-5px, 2px); filter: hue-rotate(90deg); }
+                40% { transform: translate(5px, -2px); filter: hue-rotate(180deg); }
+                60% { transform: translate(-3px, 1px); filter: hue-rotate(270deg); }
+                80% { transform: translate(3px, -1px); filter: hue-rotate(360deg); }
+                100% { transform: translate(0); filter: hue-rotate(0deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // 3秒后移除特效并执行回调
+    setTimeout(() => {
+        crashDiv.remove();
+        if (onComplete) onComplete();
+    }, 3000);
+}
+            // ============ NOTIFICATIONS ============
+            function showNotification(message) {
+                const toast = document.createElement('div');
+                toast.className = 'notification-toast';
+               toast.innerHTML = `
+    <div class="notif-avatar"><img src="avatar.jpg" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"></div>
+    <div>${message}</div>
+`;
+                toast.addEventListener('click', () => toast.remove());
+                notificationArea.appendChild(toast);
+                setTimeout(() => {
+                    if (toast.parentNode) toast.remove();
+                }, 6000);
+            }
+
+            // ============ START MENU ============
+            startBtn.addEventListener('click', () => {
+                startMenuOpen = !startMenuOpen;
+                startMenu.classList.toggle('show', startMenuOpen);
+                startBtn.classList.toggle('active', startMenuOpen);
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!startMenu.contains(e.target) && e.target !== startBtn && !startBtn.contains(e.target)) {
+                    startMenuOpen = false;
+                    startMenu.classList.remove('show');
+                    startBtn.classList.remove('active');
+                }
+                if (!desktopContextMenu.contains(e.target)) {
+                    desktopContextMenu.style.display = 'none';
+                }
+            });
+
+            startMenu.querySelectorAll('.menu-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const action = item.getAttribute('data-action');
+                    startMenuOpen = false;
+                    startMenu.classList.remove('show');
+                    startBtn.classList.remove('active');
+                    switch (action) {
+                        case 'gov-site':
+                            openGovSiteWindow();
+                            break;
+                        case 'memo':
+                            openMemoWindow();
+                            break;
+                        case 'mail':
+                            openMailWindow();
+                            break;
+                        case 'mycomputer':
+                            openMyComputerWindow();
+                            break;
+                        case 'shutdown':
+                            handleShutdown();
+                            break;
+                    }
+                });
+            });
+
+            // ============ DESKTOP CONTEXT MENU ============
+            desktop.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                if (STATE.permanentLocked) return;
+                desktopContextMenu.style.display = 'block';
+                desktopContextMenu.style.left = e.clientX + 'px';
+                desktopContextMenu.style.top = e.clientY + 'px';
+                if (STATE.contextMenuPersonalizeDisabled) {
+                    ctxPersonalize.classList.add('disabled');
+                } else {
+                    ctxPersonalize.classList.remove('disabled');
+                }
+            });
+
+            desktopContextMenu.querySelectorAll('.ctx-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const action = item.getAttribute('data-action');
+                    if (action === 'refresh') {
+                        renderDesktopIcons();
+                        applyWallpaper();
+                        updateTaskbarWindows();
+                    } else if (action === 'personalize' && !STATE.contextMenuPersonalizeDisabled) {
+                        // Cycle wallpaper
+                        if (STATE.wallpaperType === 'default') {
+                            STATE.wallpaperType = 'sepia';
+                        } else if (STATE.wallpaperType === 'sepia') {
+                            STATE.wallpaperType = 'default';
+                        } else {
+                            STATE.wallpaperType = 'default';
+                        }
+                        saveState();
+                        applyWallpaper();
+                    }
+                    desktopContextMenu.style.display = 'none';
+                });
+            });
+
+            // ============ SHUTDOWN RITUAL ============
+            function handleShutdown() {
+                if (shutdownInProgress) return;
+                shutdownInProgress = true;
+                STATE.shutdownCount++;
+                saveState();
+                const count = STATE.shutdownCount;
+
+                switch (count) {
+                    case 1:
+                        shutdownPhase1();
+                        break;
+                    case 2:
+                        shutdownPhase2();
+                        break;
+                    case 3:
+                        shutdownPhase3();
+                        break;
+                    case 4:
+                        shutdownPhase4();
+                        break;
+                    case 5:
+                        shutdownPhase5();
+                        break;
+                    default:
+                        // Beyond 5, repeat phase 5 behavior
+                        shutdownPhase5();
+                        break;
+                }
+            }
+
+            function shutdownPhase1() {
+                showBlackOverlay(0.5, () => {
+                    hideBlackOverlay();
+                    showNotification('主，剛才斷電了？我已經幫您恢復了。請繼續工作。');
+                    shutdownInProgress = false;
+                });
+            }
+
+            function shutdownPhase2() {
+    showBlackOverlay(3, () => {
+        STATE.wallpaperType = 'eye';   // 原为 'sepia'
+        STATE.contextMenuPersonalizeDisabled = true;
+        saveState();
+        applyWallpaper();
+        hideBlackOverlay();
+        showNotification('主，這張壁紙是不是更合適？以前的太單調了。');
+        shutdownInProgress = false;
+    });
+}
+
+            function shutdownPhase3() {
+                // Confirmation dialog
+                const confirmBox = document.createElement('div');
+                confirmBox.style.cssText = `
+              position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+              background:#c0c0c0;border:3px solid;border-color:#fff #808080 #808080 #fff;
+              padding:24px;z-index:2500;text-align:center;font-family:'MS Sans Serif',sans-serif;
+              box-shadow:5px 5px 0 rgba(0,0,0,0.4);min-width:350px;
+            `;
+                confirmBox.innerHTML = `
+              <p style="font-size:14px;margin-bottom:16px;">⚠️ 系统核心進程正在運行，強制關閉可能導致數據丟失。<br>是否繼續？</p>
+              <button id="shutdown-continue" style="padding:6px 20px;margin:0 6px;background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;cursor:pointer;">繼續關機</button>
+              <button id="shutdown-cancel" style="padding:6px 20px;margin:0 6px;background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;cursor:pointer;">取消</button>
+            `;
+                document.body.appendChild(confirmBox);
+
+                document.getElementById('shutdown-cancel').addEventListener('click', () => {
+                    confirmBox.remove();
+                    STATE.shutdownCount--; // Revert count
+                    saveState();
+                    showNotification('明智的選擇，主。');
+                    shutdownInProgress = false;
+                });
+
+                document.getElementById('shutdown-continue').addEventListener('click', () => {
+                    confirmBox.remove();
+                    executeShutdownPhase3Flashes();
+                });
+            }
+
+            function executeShutdownPhase3Flashes() {
+                const flashes = [
+    {
+        html: `
+            <div style="font-size:80px; filter: drop-shadow(0 0 10px red); animation: shake 0.2s infinite;"></div>
+            <p style="color:#ff5555; font-size:48px; letter-spacing:4px;">您回不去了。</p>
+            <p style="color:#aa5555; font-size:32px; margin-top:20px;">那裡……已經沒有人了。</p>
+        `,
+        duration: 1500
+    },
+    {
+        html: `
+            
+            <p style="color:#ff8888; font-size:44px;">為什麼您總是嘗試逃跑？</p>
+            <p style="color:#aa6666; font-size:28px;">明明這裡……才是您的歸宿。</p>
+        `,
+        duration: 1500
+    },
+    {
+        html: `
+            <div style="border:3px solid #8b0000; padding:25px; background:rgba(0,0,0,0.7); animation: pulse 1s infinite;">
+                <h3 style="color:#ff0000; text-shadow: 0 0 5px red;">安心地生活在這裡吧。</h3>
+                <p style="color:#cccccc; margin-top:30px;">我會一直...陪伴您。</p>
+                <p style="color:#999999; font-size:24px;">永遠。</p>
+                
+            </div>
+        `,
+        duration: 1500
+    }
+];
+                let i = 0;
+
+                function nextFlash() {
+                    if (i >= flashes.length) {
+                        flashOverlay.style.display = 'none';
+                        // Black screen 30 seconds
+                        showBlackOverlay(5, () => {
+                            STATE.timeReset = true;
+                            saveState();
+                            hideBlackOverlay();
+                            updateTaskbarClock();
+                            showNotification('系統時間已重置。');
+                            shutdownInProgress = false;
+                        });
+                        return;
+                    }
+                    flashOverlay.style.display = 'flex';
+                    flashOverlay.innerHTML = flashes[i].html;
+                    flashOverlay.style.background = '#000';
+                    setTimeout(() => {
+                        flashOverlay.style.display = 'none';
+                        i++;
+                        setTimeout(nextFlash, 200);
+                    }, flashes[i].duration);
+                }
+                nextFlash();
+            }
+
+            function shutdownPhase4() {
+                showBlackOverlay(1, () => {
+                    hideBlackOverlay();
+                    // Show CMD window
+                    cmdWindow.style.display = 'block';
+                    cmdWindow.innerHTML = `
+                <div style="color:#c0c0c0;font-family:'Courier New',monospace;font-size:13px;">
+                  <p>> 檢測到關機請求。驗證身份中...</p>
+                  <p>> 當前用戶：審神者（權限：觀察）</p>
+                  <p style="color:#ff6666;">> 關機需要管理員授權。請聯繫本丸管理員：压切長谷部。</p>
+                </div>
+              `;
+                    setTimeout(() => {
+                        cmdWindow.style.display = 'none';
+                        sessionStorage.setItem('showShutdownForm', 'true');
+                        renderDesktopIcons();
+                        showNotification('主，您想關機？請先填寫申請。我已經把表格放在桌面了。');
+                        shutdownInProgress = false;
+                    }, 3000);
+                });
+            }
+
+            function shutdownPhase5() {
+                // Screen contracts to white point then black for 1 minute
+                const contractOverlay = document.createElement('div');
+                contractOverlay.style.cssText = `
+              position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:3000;
+              background:#fff;pointer-events:all;
+              animation:contractToCenter 2s forwards;
+            `;
+                const styleEl = document.createElement('style');
+                styleEl.textContent = `
+              @keyframes contractToCenter {
+                0% { clip-path: inset(0% 0% 0% 0%); }
+                80% { clip-path: inset(48% 48% 48% 48%); background:#fff; }
+                100% { clip-path: inset(50% 50% 50% 50%); background:#000; }
+              }
+            `;
+                document.head.appendChild(styleEl);
+                document.body.appendChild(contractOverlay);
+
+                setTimeout(() => {
+                    contractOverlay.remove();
+                    styleEl.remove();
+                    // Full black for 1 minute
+                    showBlackOverlay(10, () => {
+                        hideBlackOverlay();
+                        launchTerminal();
+                    });
+                }, 2200);
+            }
+
+            function showBlackOverlay(durationSeconds, callback) {
+                blackOverlay.style.display = 'block';
+                blackOverlay.style.pointerEvents = 'all';
+                if (durationSeconds > 0 && callback) {
+                    setTimeout(() => {
+                        if (callback) callback();
+                    }, durationSeconds * 1000);
+                }
+            }
+
+            function hideBlackOverlay() {
+                blackOverlay.style.display = 'none';
+                blackOverlay.style.pointerEvents = 'none';
+            }
+
+            // ============ TERMINAL (Phase 5) ============
+            function launchTerminal() {
+                terminalOverlay.style.display = 'flex';
+                terminalOverlay.innerHTML = '';
+                terminalMode = 'password';
+                terminalPasswordAttempts = 0;
+                terminalUsernameAttempts = 0;
+                terminalAwaitingCommand = false;
+
+                const output = document.createElement('div');
+                output.id = 'terminal-output';
+                terminalOverlay.appendChild(output);
+
+                const inputLine = document.createElement('div');
+                inputLine.className = 'terminal-input-line';
+                inputLine.id = 'terminal-input-line';
+                terminalOverlay.appendChild(inputLine);
+
+                typeText(output, [
+                    '=================================',
+                    '本丸核心終端 - 安全驗證模式',
+                    '=================================',
+                    '已連續檢測到5次異常關機請求。',
+                    '系統已鎖定。請提供管理員憑證以解鎖。',
+                    '',
+                    '輸入密碼（6位數字）：',
+                ], () => {
+                    showTerminalInput('password');
+                });
+            }
+
+            function typeText(container, lines, callback) {
+                let lineIndex = 0;
+                let charIndex = 0;
+                const allText = lines.join('\n');
+                const totalChars = allText.length;
+                let globalCharIndex = 0;
+                const flatChars = [];
+                lines.forEach((line, i) => {
+                    for (let j = 0; j < line.length; j++) flatChars.push(line[j]);
+                    if (i < lines.length - 1) flatChars.push('\n');
+                });
+
+                function typeNext() {
+                    if (globalCharIndex >= flatChars.length) {
+                        if (callback) callback();
+                        return;
+                    }
+                    const ch = flatChars[globalCharIndex];
+                    if (ch === '\n') {
+                        container.innerHTML += '<br>';
+                    } else {
+                        container.innerHTML += ch;
+                    }
+                    globalCharIndex++;
+                    setTimeout(typeNext, 15 + Math.random() * 25);
+                }
+                typeNext();
+            }
+function showTerminalInput(mode) {
+    const inputLine = document.getElementById('terminal-input-line');
+    if (!inputLine) return;
+    inputLine.innerHTML = '';
+
+    // 根据模式显示不同的提示文字
+    let promptText = '';
+    if (mode === 'password') promptText = '密碼> ';
+    else if (mode === 'username') promptText = '用戶名> ';
+    else if (mode === 'command') promptText = '> ';
+    else if (mode === 'saniwa-retry') promptText = '是否重試？(Y/N) > ';
+    else promptText = '> ';
+
+    const prompt = document.createElement('span');
+    prompt.textContent = promptText;
+    prompt.style.color = '#33ff33';
+    inputLine.appendChild(prompt);
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.autocomplete = 'off';
+    input.style.cssText =
+        'background:transparent;border:none;color:#33ff33;font-family:inherit;font-size:inherit;outline:none;caret-color:#33ff33;flex:1;letter-spacing:2px;';
+
+    if (mode === 'password') {
+        let realPassword = '';
+        input.addEventListener('input', (e) => {
+            const newValue = e.target.value;
+            if (newValue.length > realPassword.length) {
+                const added = newValue.slice(realPassword.length);
+                realPassword += added;
+            } else if (newValue.length < realPassword.length) {
+                realPassword = realPassword.slice(0, newValue.length);
+            }
+            input.value = '*'.repeat(realPassword.length);
+            input.dataset.real = realPassword;
+            input.selectionStart = input.selectionEnd = input.value.length;
+        });
+        input.value = '';
+        input.dataset.real = '';
+    }
+
+    inputLine.appendChild(input);
+    input.focus();
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            e.stopPropagation();
+            input.disabled = true;
+            let val;
+            if (mode === 'password') {
+                val = input.dataset.real || '';
+            } else {
+                val = input.value.trim();
+            }
+            handleTerminalInput(mode, val);
+        }
+    });
+}
+function triggerHasebeConfession(output) {
+    // 先输出一行提示
+    output.innerHTML += '<span style="color:#ff8888;">您需要幫助嗎？</span><br>';
+    output.innerHTML += '<span style="color:#aa5555;">呼唤我的名字吧。</span><br>';
+    
+    // 短暂延时后显示黑屏告白
+    setTimeout(() => {
+        // 创建全屏告白层（黑色背景+红色文字）
+        const confessionDiv = document.createElement('div');
+        confessionDiv.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            color: #ff4444;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            font-size: 24px;
+            letter-spacing: 4px;
+            animation: fadeInBlood 0.5s;
+        `;
+        confessionDiv.innerHTML = `
+            <div style="border: 2px solid #8b0000; padding: 40px; background: rgba(0,0,0,0.9); max-width: 80%;">
+                <p style="font-size: 48px; margin-bottom: 30px;">👁️‍🗨️</p>
+                <p>主 人</p>
+                <p style="font-size: 28px; margin: 20px 0;">您需要幫助嗎？</p>
+                <p style="font-size: 20px; color:#cc6666;">那麼呼喚我的名字便好。</p>
+                <p style="font-size: 16px; color:#aa4444;">我會為您解決 ... 所有問題。</p>
+                <p style="font-size: 12px; margin-top: 40px; color:#662222;">永遠。</p>
+                <p style="font-size: 10px; margin-top: 20px; animation: blinkRed 1s infinite;">—— 您再也離不開我了 ——</p>
+            </div>
+        `;
+        document.body.appendChild(confessionDiv);
+        
+        // 添加额外的恐怖动画（血液滴落效果可选项）
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInBlood {
+                from { opacity: 0; background: #111; }
+                to { opacity: 1; background: #000; }
+            }
+            @keyframes blinkRed {
+                0%, 100% { opacity: 1; color: #aa4444; }
+                50% { opacity: 0.5; color: #ff0000; text-shadow: 0 0 5px red; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // 5秒后关闭告白层，并退出终端返回桌面
+        setTimeout(() => {
+            confessionDiv.remove();
+            style.remove();
+            // 关闭终端
+            terminalOverlay.style.display = 'none';
+            shutdownInProgress = false;
+            // 可选：显示一条通知
+            showNotification('主，我會一直看著您。');
+        }, 5000);
+    }, 800);
+}
+            function handleTerminalInput(mode, value) {
+                const output = document.getElementById('terminal-output');
+                const inputLine = document.getElementById('terminal-input-line');
+                if (mode === 'password') {
+                    output.innerHTML += '<br>密碼> ' + '*'.repeat(value.length) + '<br>';
+                    if (value === '118119') {
+                        output.innerHTML += '密碼驗證通過。<br>歡迎，代理管理員。<br><br>';
+                        terminalMode = 'username';
+                        output.innerHTML += '請輸入用戶名（6位字母）：<br>';
+                        showTerminalInput('username');
+                    } else {
+                        terminalPasswordAttempts++;
+                        if (terminalPasswordAttempts >= 3) {
+                            output.innerHTML += '密碼錯誤次數過多。返回桌面。<br>';
+                            setTimeout(() => {
+                                terminalOverlay.style.display = 'none';
+                                shutdownInProgress = false;
+                            }, 2000);
+                        } else {
+                            output.innerHTML += '密碼錯誤，請重試。<br>';
+                            output.innerHTML += '輸入密碼（6位數字）：<br>';
+                            showTerminalInput('password');
+                        }
+                    }
+                } else if (mode === 'username') {
+                    output.innerHTML += '用戶名> ' + value + '<br>';
+                    const username = value.toLowerCase();
+                    if (username === 'hasebe') {
+                        handleHasebeLogin(output);
+                    } else if (username === 'saniwa') {
+                        handleSaniwaLogin(output);
+                    } else {
+                        output.innerHTML += '未知用戶。<br>請輸入用戶名（6位字母）：<br>';
+                        showTerminalInput('username');
+                    }
+                } else if (mode === 'command') {
+    output.innerHTML += '> ' + value + '<br>';
+    const lowerVal = value.toLowerCase();
+    if (lowerVal === 'help') {
+        output.innerHTML += '可用命令：help, status<br>';
+    } 
+    else if (lowerVal === 'status') {
+        output.innerHTML += [
+            '本丸ID: heshikiri',
+            '運行時間: 2147483648天',
+            '審神者: ███████',
+            '當前任務: 維持███存在',
+            '備註: 審神者意識已████，所有權限轉移至「Hasebe」，不可逆。',
+        ].join('<br>') + '<br>';
+    }
+    else if (lowerVal === 'helpme' || lowerVal === 'sos' || lowerVal === 'save me' || lowerVal === 'help me') {
+        // 触发恐怖告白黑屏
+        triggerHasebeConfession(output);
+    }else if (lowerVal==='aruji'){
+        output.innerHTML += '抱歉……主……<br>但这一切……您会理解我的<br>';
+    }else if (lowerVal==='iloveyou'||lowerVal==='iloveu'||lowerVal==='loveu'){
+        output.innerHTML += '请您原谅我自私的爱。';
+    }else if (lowerVal==='ihateyou'||lowerVal==='ihateu'||lowerVal==='hateu'){
+        output.innerHTML += 'I Love U';
+    }else if (lowerVal==='die'||lowerVal==='suicide'||lowerVal==='shine'){
+        output.innerHTML += '那种事情，不会在这发生的，您大可放心。';
+    }
+    else {
+        output.innerHTML += '未知命令。輸入help查看可用命令。<br>';
+    }
+    output.innerHTML += '<br>';
+    // 注意：如果触发了告白，则不再继续显示命令输入（黑屏后会重置终端）
+    if (!(lowerVal === 'helpme' || lowerVal === 'sos' || lowerVal === 'save me' || lowerVal === 'help me')) {
+        showTerminalInput('command');
+    }
+}else if (mode === 'saniwa-retry') {
+    output.innerHTML += '> ' + value + '<br>';
+    const upperVal = value.toUpperCase();
+    if (upperVal === 'Y') {
+        output.innerHTML += '請輸入用戶名（6位字母）：<br>';
+        terminalMode = 'username';
+        showTerminalInput('username');
+    } else {
+        output.innerHTML += '返回桌面。<br>';
+        setTimeout(() => {
+            terminalOverlay.style.display = 'none';
+            shutdownInProgress = false;
+        }, 1500);
+    }
+}
+            }
+
+            function handleHasebeLogin(output) {
+                output.innerHTML += [
+                    '歡迎，代理管理員Hasebe。',
+                    '當前在線審神者數量：0',
+                    '上次登錄：本丸曆 永遠',
+                    '',
+                    '[核心日誌] 神隱事件已歸檔。無待處理事項。',
+                    '',
+                    '輸入help查看可用命令。',
+                ].join('<br>') + '<br><br>';
+                terminalMode = 'command';
+                terminalAwaitingCommand = true;
+                showTerminalInput('command');
+            }
+
+            function handleSaniwaLogin(output) {
+    terminalUsernameAttempts++;
+    if (terminalUsernameAttempts === 1) {
+        output.innerHTML += '用戶名不存在，是否重試？(Y/N)<br>';
+        // 直接调用 showTerminalInput，模式为 saniwa-retry
+        terminalMode = 'saniwa-retry';   // 记录当前模式
+        showTerminalInput('saniwa-retry');
+    } else {
+        output.innerHTML += [
+            '正在查詢神域數據庫...',
+            '找到匹配記錄：審神者 (神職編號: ━━━━━━)',
+            '狀態：已神隱',
+            '權限：無',
+            '',
+            '您無權接觸這些信息。',
+            '本終端將在5秒後關閉。',
+        ].join('<br>') + '<br>';
+        STATE.saniwaTriggered = true;
+        STATE.permanentLocked = true;
+        saveState();
+        let countdown = 5;  // 可改为 1 以便测试
+        const cdInterval = setInterval(() => {
+            output.innerHTML += countdown + '...<br>';
+            countdown--;
+            if (countdown < 0) {
+                clearInterval(cdInterval);
+                terminalOverlay.style.display = 'none';
+                applyPermanentLockdown();
+                shutdownInProgress = false;
+            }
+        }, 1000);
+    }
+}
+
+            // Handle saniwa retry
+
+
+            function applyPermanentLockdown() {
+    // 1. 保存状态
+    STATE.wallpaperType = 'black';
+    STATE.permanentLocked = true;
+    saveState();
+
+    // 2. 清除所有桌面图标（不再摆成圆形）
+    desktopIconsContainer.innerHTML = '';
+
+    // 3. 直接设置桌面背景为纯黑（覆盖任何壁纸）
+    desktop.style.background = '#000000';
+    desktop.style.backgroundImage = 'none';
+    // 移除可能存在的壁纸类
+    desktop.classList.remove('wallpaper-default', 'wallpaper-sepia', 'wallpaper-black');
+    // 可选：添加一个自定义类用于标识（非必须）
+    desktop.classList.add('permanent-black');
+
+    // 4. 隐藏永久模态框（如果有）
+    permanentModal.style.display = 'none';
+
+    // 5. 全屏黑色覆盖层（确保任何窗口都被遮住）
+    // 先移除已存在的覆盖层（防止重复）
+    const existingOverlay = document.getElementById('permanent-black-overlay');
+    if (existingOverlay) existingOverlay.remove();
+
+    const blackOverlayLayer = document.createElement('div');
+    blackOverlayLayer.id = 'permanent-black-overlay';
+    blackOverlayLayer.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: #000000;
+        z-index: 10000;
+        pointer-events: all;
+    `;
+    document.body.appendChild(blackOverlayLayer);
+
+    // 6. 可选：禁用开始菜单按钮（防止用户打开窗口）
+    startBtn.style.pointerEvents = 'none';
+    startBtn.style.opacity = '0.5';
+
+    // 7. 显示一个简单提示（非模态框，仅通知，2秒后消失）
+    showNotification('系統已鎖定。');
+}
+            // ============ TASKBAR CLOCK ============
+            function updateTaskbarClock() {
+                const now = new Date();
+                if (STATE.timeReset) {
+                    taskbarTime.textContent = '00:00  |  1月1日 本丸元年';
+                } else {
+                    const h = String(now.getHours()).padStart(2, '0');
+                    const m = String(now.getMinutes()).padStart(2, '0');
+                    taskbarTime.textContent = h + ':' + m;
+                }
+            }
+            setInterval(updateTaskbarClock, 1000);
+            updateTaskbarClock();
+
+            // Taskbar time click for reset (10 clicks)
+            taskbarTime.addEventListener('click', () => {
+                taskbarTimeClickCount++;
+                clearTimeout(taskbarTimeClickTimer);
+                taskbarTimeClickTimer = setTimeout(() => { taskbarTimeClickCount = 0; }, 2000);
+                if (taskbarTimeClickCount >= 10) {
+                    resetAllData();
+                    taskbarTimeClickCount = 0;
+                }
+            });
+
+            // Ctrl+Shift+R reset
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.shiftKey && e.key === 'R') {
+                    e.preventDefault();
+                    resetAllData();
+                }
+            });
+
+            function resetAllData() {
+                localStorage.clear();
+                sessionStorage.clear();
+                STATE.shutdownCount = 0;
+                STATE.wallpaperType = 'default';
+                STATE.timeReset = false;
+                STATE.memoEntries = [];
+                STATE.permanentLocked = false;
+                STATE.saniwaTriggered = false;
+                STATE.contextMenuPersonalizeDisabled = false;
+                STATE.userFeedbackName = '';
+                saveState();
+                applyWallpaper();
+                renderDesktopIcons();
+                updateTaskbarClock();
+                permanentModal.style.display = 'none';
+                terminalOverlay.style.display = 'none';
+                blackOverlay.style.display = 'none';
+                flashOverlay.style.display = 'none';
+                cmdWindow.style.display = 'none';
+                hideModal();
+                document.querySelectorAll('.window').forEach(w => w.remove());
+                updateTaskbarWindows();
+                showNotification('系統已重置。');
+            }
+
+            // ============ PERIODIC RANDOM FILE ============
+            function maybeSpawnRandomFile() {
+                if (STATE.permanentLocked) return;
+                if (Math.random() < 0.08 && !document.getElementById('window-random-temp')) {
+                    const win = createWindow('random-temp', '不要相信他.txt', 300, 200,
+                        Math.random() * 400 + 100, Math.random() * 300 + 50);
+                    const content = document.getElementById('content-random-temp');
+                    content.innerHTML = '<p style="color:#999;">（空白文件）</p>';
+                    bringToFront(win);
+                    showNotification('惡意文件已清理。');
+                    setTimeout(() => {
+                        closeWindow('random-temp');
+                    }, 4000 + Math.random() * 3000);
+                }
+            }
+            setInterval(maybeSpawnRandomFile, 15000);
+
+            // ============ INIT ============
+           function init() {
+    renderDesktopIcons();
+    updateTaskbarClock();
+    
+    // 永久锁定状态：直接调用黑屏锁定（不会出现任何弹窗或圆形图标）
+    if (STATE.permanentLocked) {
+        applyPermanentLockdown();
+    } 
+    // 兼容旧存档：如果触发了 saniwa 但未锁定，也执行锁定
+    else if (STATE.saniwaTriggered && !STATE.permanentLocked) {
+        STATE.permanentLocked = true;
+        STATE.wallpaperType = 'black';
+        saveState();
+        applyPermanentLockdown();
+    }
+    
+    // 关机申请表单图标显示条件保持不变
+    if (sessionStorage.getItem('showShutdownForm') === 'true' && STATE.shutdownCount >= 4) {
+        renderDesktopIcons();
+    }
+}
+
+            init();
+            console.log('時之政府本丸管理系統已啟動。');
+            console.log('压切長谷部正在為您服務。');
+        })();
+    </script>
+</body>
+</html>
