@@ -835,7 +835,11 @@
                 contextMenuPersonalizeDisabled: localStorage.getItem('ctxPersonalizeDisabled') === 'true',
                 userFeedbackName: localStorage.getItem('userFeedbackName') || '',
                  honmaruChecklist: JSON.parse(localStorage.getItem('honmaruChecklist') || '[false, false, false, false, false, false]'),
-                
+                 mailHelpSeen: localStorage.getItem('mailHelpSeen') === 'true',
+mailSenderSeen: localStorage.getItem('mailSenderSeen') === 'true',
+                loveMemoDeleteAttempts: parseInt(localStorage.getItem('loveMemoDeleteAttempts') || '0'),
+                returnHomeAttempts: parseInt(localStorage.getItem('returnHomeAttempts') || '0'),
+hideReturnHome: localStorage.getItem('hideReturnHome') === 'true',
             };
 
             function saveState() {
@@ -848,6 +852,16 @@
                 localStorage.setItem('ctxPersonalizeDisabled', STATE.contextMenuPersonalizeDisabled);
                 localStorage.setItem('userFeedbackName', STATE.userFeedbackName);
                 localStorage.setItem('honmaruChecklist', JSON.stringify(STATE.honmaruChecklist));
+                localStorage.setItem( 'loveMemoDeleteAttempts',STATE.loveMemoDeleteAttempts);
+                localStorage.setItem(
+    'returnHomeAttempts',
+    STATE.returnHomeAttempts
+);
+
+localStorage.setItem(
+    'hideReturnHome',
+    STATE.hideReturnHome
+);
             }
 
             // ============ DOM REFS ============
@@ -1020,7 +1034,7 @@
                        if (STATE.wallpaperType === 'eye') {
                 openHonmaruChecklistWindow();
             } else {
-                openSimpleWindow('本丸管理', '本丸目前运作正常。\n\n审神者状态：在勤\n近侍：压切长谷部\n\n无待处理事项。');
+                openTasksWindow();
             }
                         break;
                     case 'sword-book':
@@ -1040,7 +1054,93 @@
                         break;
                 }
             }
+function openTasksWindow() {
 
+    const id = 'tasks';
+
+    const win = createWindow(
+        id,
+        '本丸事务',
+        420,
+        320
+    );
+
+    const content =
+        document.getElementById('content-' + id);
+
+    let tasks = `
+        <div class="task-item">
+            ☑ 提交月报
+        </div>
+
+        <div class="task-item">
+            ☑ 锻刀记录整理
+        </div>
+    `;
+
+    if (!STATE.hideReturnHome) {
+
+        tasks += `
+            <div
+                class="task-item"
+                id="return-home-task"
+                style="cursor:pointer;">
+                ☐ 回家
+            </div>
+        `;
+
+    }
+
+    content.innerHTML = tasks;
+
+    const returnTask =
+        document.getElementById('return-home-task');
+
+    if (returnTask) {
+
+        returnTask.addEventListener('click', () => {
+
+            STATE.returnHomeAttempts++;
+
+            saveState();
+
+            const messages = [
+                '无法完成该事项。',
+                '该事项暂时搁置。',
+                '没有必要这么着急。',
+                '主，本丸还有很多事情。',
+                '……',
+            ];
+
+            const index =
+                Math.min(
+                    STATE.returnHomeAttempts - 1,
+                    messages.length - 1
+                );
+
+            showNotification(messages[index]);
+
+            if (
+                STATE.returnHomeAttempts >= 5
+            ) {
+
+                closeWindow(win);
+
+                showNotification(
+                    '主，今天就先到这里吧。'
+                );
+
+                STATE.hideReturnHome = true;
+
+                saveState();
+            }
+
+        });
+
+    }
+
+    bringToFront(win);
+}
             // ============ WINDOW MANAGEMENT ============
             function createWindow(id, title, width = 500, height = 400, left = null, top = null) {
                 const existing = document.getElementById('window-' + id);
@@ -1329,33 +1429,82 @@ function openHonmaruChecklistWindow() {
     bringToFront(win);
 }
             function openMailWindow() {
-                const id = 'mail';
-                const win = createWindow(id, '时政邮件', 500, 420);
-                const content = document.getElementById('content-' + id);
-                content.innerHTML = `
-              <div style="border-bottom:1px solid #ddd;padding:8px;cursor:pointer;background:#f9f9f9;" id="mail-item-1">
-                <span style="font-weight:bold;">无标题</span>
-                <span style="color:#999;font-size:10px;margin-left:10px;">发件人：</span><span style="color:#ccc;font-size:10px;" id="mail-sender-1" title="该用户已神隐">███</span>
-              </div>
-              <div style="padding:8px;color:#999;font-size:11px;">共 1 封邮件</div>
-              <div id="mail-preview" style="padding:15px;display:none;border:1px solid #eee;margin-top:10px;"></div>
-            `;
-                const mailItem = content.querySelector('#mail-item-1');
-                const mailPreview = content.querySelector('#mail-preview');
-                const mailSender = content.querySelector('#mail-sender-1');
-                mailSender.addEventListener('mouseenter', () => {
-                    showTooltipNear(mailSender, '该用户已神隐');
-                });
-                mailItem.addEventListener('click', () => {
-                    mailPreview.style.display = 'block';
-                    mailPreview.innerHTML = '<span id="mail-body-text">help me</span>';
-                    const bodyText = document.getElementById('mail-body-text');
-                    setTimeout(() => {
-                        if (bodyText) bodyText.textContent = '本丸工作愉快';
-                    }, 500);
-                });
-                bringToFront(win);
-            }
+    const id = 'mail';
+    const win = createWindow(id, '时政邮件', 500, 420);
+    const content = document.getElementById('content-' + id);
+
+    const senderText = STATE.mailSenderSeen
+        ? '时之政府'
+        : '███';
+
+    content.innerHTML = `
+        <div style="border-bottom:1px solid #ddd;padding:8px;cursor:pointer;background:#f9f9f9;" id="mail-item-1">
+            <span style="font-weight:bold;">无标题</span>
+            <span style="color:#999;font-size:10px;margin-left:10px;">发件人：</span>
+            <span style="color:#666;font-size:10px;" id="mail-sender-1">${senderText}</span>
+        </div>
+
+        <div style="padding:8px;color:#999;font-size:11px;">
+            共 1 封邮件
+        </div>
+
+        <div id="mail-preview"
+             style="padding:15px;display:none;border:1px solid #eee;margin-top:10px;">
+        </div>
+    `;
+
+    const mailItem = content.querySelector('#mail-item-1');
+    const mailPreview = content.querySelector('#mail-preview');
+    const mailSender = content.querySelector('#mail-sender-1');
+
+    // 神隐提示只出现一次
+    if (!STATE.mailSenderSeen) {
+        mailSender.addEventListener('mouseenter', () => {
+            showTooltipNear(mailSender, '该用户已神隐');
+
+            STATE.mailSenderSeen = true;
+            saveState();
+        }, { once: true });
+    }
+
+    mailItem.addEventListener('click', () => {
+
+        mailPreview.style.display = 'block';
+
+        // 第一次打开邮件
+        if (!STATE.mailHelpSeen) {
+
+            mailPreview.innerHTML =
+                '<span id="mail-body-text">help me</span>';
+
+            STATE.mailHelpSeen = true;
+            saveState();
+
+            setTimeout(() => {
+
+                const bodyText =
+                    document.getElementById('mail-body-text');
+
+                if (bodyText) {
+                    bodyText.textContent = '本丸工作愉快';
+                }
+
+            }, 500);
+
+        } else {
+
+            mailPreview.innerHTML =
+                '<span>本丸工作愉快</span>';
+
+        }
+
+        showNotification(
+            '主，最近一定是太累了吧。看错也是正常的，这些事情不用在意。'
+        );
+    });
+
+    bringToFront(win);
+}
 
             function showTooltipNear(el, text) {
                 const existing = document.querySelector('.custom-tooltip');
@@ -1467,15 +1616,74 @@ saveBtn.addEventListener('click', () => {
     showNotification('主，我也最喜欢您了。永远。');
 });
 
-                deleteBtn.addEventListener('click', () => {
-                    if (selectedMemoIndex >= 0 && selectedMemoIndex < STATE.memoEntries.length) {
-                        STATE.memoEntries.splice(selectedMemoIndex, 1);
-                        saveState();
-                        textarea.value = '';
-                        selectedMemoIndex = -1;
-                        renderMemoContent(content);
-                    }
-                });
+deleteBtn.addEventListener('click', () => {
+
+    if (selectedMemoIndex < 0) return;
+
+    const targetText = STATE.memoEntries[selectedMemoIndex];
+
+    const protectedTexts = [
+        '最喜欢长谷部了',
+        '最喜欢长谷部了。',
+        '最喜歡長谷部了'
+    ];
+
+    if (protectedTexts.includes(targetText)) {
+
+        STATE.loveMemoDeleteAttempts++;
+
+        saveState();
+
+        const stageTexts = [
+            '正在删除……',
+            '删除完成。',
+            '最喜欢长谷部了……',
+            '最喜欢长谷部了吧？',
+            '最喜欢长谷部了，对吧？',
+            '主，为什么要删除呢？',
+            '我会难过的。',
+            '您是不是又忘记了？',
+            '我已经帮您记住了。'
+        ];
+
+        const currentStage =
+            Math.min(
+                STATE.loveMemoDeleteAttempts,
+                stageTexts.length - 1
+            );
+
+        showNotification('正在删除……');
+
+        setTimeout(() => {
+
+            STATE.memoEntries[selectedMemoIndex] =
+                stageTexts[currentStage];
+
+            saveState();
+
+            textarea.value = '';
+            selectedMemoIndex = -1;
+
+            renderMemoContent(content);
+
+            showNotification(
+                stageTexts[currentStage]
+            );
+
+        }, 800);
+
+        return;
+    }
+
+    STATE.memoEntries.splice(selectedMemoIndex, 1);
+
+    saveState();
+
+    textarea.value = '';
+    selectedMemoIndex = -1;
+
+    renderMemoContent(content);
+});
             }
 
             function openMyComputerWindow() {
@@ -1733,7 +1941,7 @@ const bodyTexts = {
                 content.innerHTML = `
               <div class="gov-site">
                 <div class="gov-header">
-                  <span class="gov-title">時之政府</span>
+                  <span class="gov-title">时之政府</span>
                   <div class="hinomaru"></div>
                 </div>
                 <button id="gov-back-from-archive" style="background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;padding:4px 12px;cursor:pointer;margin-bottom:12px;">← 返回公告列表</button>
@@ -2646,7 +2854,7 @@ function handleSaniwaLogin(output) {
                     const content = document.getElementById('content-random-temp');
                     content.innerHTML = '<p style="color:#999;">（空白文件）</p>';
                     bringToFront(win);
-                    showNotification('恶意文件已清理。');
+                    showNotification('文件已清理。');
                     setTimeout(() => {
                         closeWindow('random-temp');
                     }, 4000 + Math.random() * 3000);
