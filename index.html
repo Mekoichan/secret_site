@@ -783,25 +783,25 @@
 
     <!-- ==================== TASKBAR ==================== -->
     <div id="taskbar">
-        <button id="start-btn"><span class="start-icon">🔴</span> 開始</button>
+        <button id="start-btn"><span class="start-icon">🔴</span> 开始</button>
         <div id="taskbar-windows"></div>
         <div id="taskbar-time">00:00</div>
     </div>
 
     <!-- ==================== START MENU ==================== -->
     <div id="start-menu">
-        <div class="menu-item" data-action="gov-site">📋 時政公告</div>
-        <div class="menu-item" data-action="memo">📝 私人備忘錄</div>
-        <div class="menu-item" data-action="mail">📧 時政郵件</div>
-        <div class="menu-item" data-action="mycomputer">💻 我的電腦</div>
+        <div class="menu-item" data-action="gov-site">📋 时政公告</div>
+        <div class="menu-item" data-action="memo">📝 私人备忘录</div>
+        <div class="menu-item" data-action="mail">📧 时政邮件</div>
+        <div class="menu-item" data-action="mycomputer">💻 我的电脑</div>
         <div class="menu-divider"></div>
-        <div class="menu-item shutdown" data-action="shutdown">⏻ 關機</div>
+        <div class="menu-item shutdown" data-action="shutdown">⏻ 关机</div>
     </div>
 
     <!-- ==================== CONTEXT MENU ==================== -->
     <div class="context-menu" id="desktop-context-menu">
         <div class="ctx-item" data-action="refresh">重新整理</div>
-        <div class="ctx-item" data-action="personalize" id="ctx-personalize">個人化</div>
+        <div class="ctx-item" data-action="personalize" id="ctx-personalize">个人化</div>
     </div>
 
     <!-- ==================== NOTIFICATION AREA ==================== -->
@@ -834,6 +834,7 @@
                 saniwaTriggered: localStorage.getItem('saniwaTriggered') === 'true',
                 contextMenuPersonalizeDisabled: localStorage.getItem('ctxPersonalizeDisabled') === 'true',
                 userFeedbackName: localStorage.getItem('userFeedbackName') || '',
+                 honmaruChecklist: JSON.parse(localStorage.getItem('honmaruChecklist') || '[false, false, false, false, false, false]'),
                 
             };
 
@@ -846,6 +847,7 @@
                 localStorage.setItem('saniwaTriggered', STATE.saniwaTriggered);
                 localStorage.setItem('ctxPersonalizeDisabled', STATE.contextMenuPersonalizeDisabled);
                 localStorage.setItem('userFeedbackName', STATE.userFeedbackName);
+                localStorage.setItem('honmaruChecklist', JSON.stringify(STATE.honmaruChecklist));
             }
 
             // ============ DOM REFS ============
@@ -905,13 +907,13 @@
 
             // ============ DESKTOP ICONS ============
             const desktopIconDefs = [
-                { id: 'gov-site', label: '時政公告', emoji: '📋', x: 15, y: 15 },
+                { id: 'gov-site', label: '时政公告', emoji: '📋', x: 15, y: 15 },
                 { id: 'honmaru', label: '本丸管理', emoji: '🏯', x: 15, y: 105 },
-                { id: 'sword-book', label: '刀帳', emoji: '⚔️', x: 15, y: 195 },
-                { id: 'mail', label: '時政郵件', emoji: '📧', x: 15, y: 285 },
-                { id: 'memo', label: '私人備忘錄', emoji: '📝', x: 15, y: 375 },
-                { id: 'mycomputer', label: '我的電腦', emoji: '💻', x: 120, y: 15 },
-                { id: 'shutdown-form', label: '關機申請表.txt', emoji: '📄', x: 120, y: 105, hidden: true },
+                { id: 'sword-book', label: '刀帐', emoji: '⚔️', x: 15, y: 195 },
+                { id: 'mail', label: '时政邮件', emoji: '📧', x: 15, y: 285 },
+                { id: 'memo', label: '私人备忘录', emoji: '📝', x: 15, y: 375 },
+                { id: 'mycomputer', label: '我的电脑', emoji: '💻', x: 120, y: 15 },
+                { id: 'shutdown-form', label: '关机申请表.txt', emoji: '📄', x: 120, y: 105, hidden: true },
             ];
 
             function renderDesktopIcons() {
@@ -1015,7 +1017,11 @@
                         openGovSiteWindow();
                         break;
                     case 'honmaru':
-                        openSimpleWindow('本丸管理', '本丸目前運作正常。\n\n審神者狀態：在勤\n近侍：压切長谷部\n\n無待處理事項。');
+                       if (STATE.wallpaperType === 'eye') {
+                openHonmaruChecklistWindow();
+            } else {
+                openSimpleWindow('本丸管理', '本丸目前运作正常。\n\n审神者状态：在勤\n近侍：压切长谷部\n\n无待处理事项。');
+            }
                         break;
                     case 'sword-book':
                         openSwordBookWindow();
@@ -1222,7 +1228,7 @@ if (top === null) {
 
             function openSwordBookWindow() {
                 const id = 'sword-book';
-                const win = createWindow(id, '刀帳', 450, 400);
+                const win = createWindow(id, '刀帐', 450, 400);
                 const content = document.getElementById('content-' + id);
                 if (STATE.wallpaperType === 'eye' && !STATE.permanentLocked) {
         // 无限滚动列表：初始显示30条，滚动到底部追加
@@ -1233,7 +1239,7 @@ if (top === null) {
         function addItems(start, count) {
             for (let i = 0; i < count; i++) {
                 const div = document.createElement('div');
-                div.textContent = `压切長谷部压切長谷部压切長谷部压切長谷部压切長谷部压切長谷部`;
+                div.textContent = `压切长谷部压切长谷部压切长谷部压切长谷部压切长谷部压切长谷部`;
                 div.style.padding = '6px';
                 div.style.borderBottom = '1px solid #eee';
                 listContainer.appendChild(div);
@@ -1250,41 +1256,95 @@ if (top === null) {
             }
         });
         
-        content.innerHTML = '<h3 style="margin-bottom:10px;">刀劍男士一覽</h3>';
+        content.innerHTML = '<h3 style="margin-bottom:10px;">刀剑男士一览</h3>';
         content.appendChild(listContainer);
-        content.innerHTML += '<p style="margin-top:12px;font-size:10px;color:#888;">共計 ∞ 名刀劍男士在籍</p>';
+        content.innerHTML += '<p style="margin-top:12px;font-size:10px;color:#888;">共计 ∞ 名刀剑男士在籍</p>';
     }
                 else{ content.innerHTML = `
-              <h3 style="margin-bottom:10px;">刀劍男士一覽</h3>
+              <h3 style="margin-bottom:10px;">刀剑男士一览</h3>
               <table style="width:100%;border-collapse:collapse;font-size:11px;">
-                <tr style="border-bottom:1px solid #ccc;"><td>三日月宗近</td><td>太刀</td><td>狀態：正常</td></tr>
-                <tr style="border-bottom:1px solid #ccc;"><td>压切長谷部</td><td>打刀</td><td>狀態：近侍</td></tr>
-                <tr style="border-bottom:1px solid #ccc;"><td>鶴丸國永</td><td>太刀</td><td>狀態：正常</td></tr>
-                <tr style="border-bottom:1px solid #ccc;"><td>藥研藤四郎</td><td>短刀</td><td>狀態：正常</td></tr>
-                <tr style="border-bottom:1px solid #ccc;"><td>燭台切光忠</td><td>太刀</td><td>狀態：正常</td></tr>
+                <tr style="border-bottom:1px solid #ccc;"><td>三日月宗近</td><td>太刀</td><td>状态：？</td></tr>
+                <tr style="border-bottom:1px solid #ccc;"><td>压切长谷部</td><td>打刀</td><td>状态：近侍</td></tr>
+                <tr style="border-bottom:1px solid #ccc;"><td>鹤丸国永</td><td>太刀</td><td>状态：？</td></tr>
+                <tr style="border-bottom:1px solid #ccc;"><td>药研藤四郎</td><td>短刀</td><td>状态：？</td></tr>
+                <tr style="border-bottom:1px solid #ccc;"><td>烛台切光忠</td><td>太刀</td><td>状态：？</td></tr>
               </table>
-              <p style="margin-top:12px;font-size:10px;color:#888;">共計 5 名刀劍男士在籍</p>
+              <p style="margin-top:12px;font-size:10px;color:#888;">共计 1 名刀剑男士在籍</p>
             `;}
                 bringToFront(win);
             }
-
+// 打开带复选框的本丸管理窗口（仅当壁纸为 eye 时使用）
+function openHonmaruChecklistWindow() {
+    const id = 'honmaru-checklist';
+    const win = createWindow(id, '本丸管理', 450, 400);
+    const content = document.getElementById('content-' + id);
+    
+    const checklistItems = [
+        '相信长谷部相信长谷部相信长谷部相信长谷部',
+        '相信长谷部相信长谷部相信长谷部相信长谷部',
+        '相信长谷部相信长谷部相信长谷部相信长谷部',
+        '相信长谷部相信长谷部相信长谷部相信长谷部',
+        '相信长谷部相信长谷部相信长谷部相信长谷部',
+        '相信长谷部相信长谷部相信长谷部相信长谷部',
+        '相信长谷部相信长谷部相信长谷部相信长谷部',
+        '相信长谷部相信长谷部相信长谷部相信长谷部',
+        '相信长谷部相信长谷部相信长谷部相信长谷部',
+        '相信长谷部相信长谷部相信长谷部相信长谷部',
+        '相信长谷部相信长谷部相信长谷部相信长谷部',
+        '相信长谷部相信长谷部相信长谷部相信长谷部'
+    ];
+    
+    function renderChecklist() {
+        let html = '<div style="padding: 8px;"><ul style="list-style: none; margin: 0; padding: 0;">';
+        checklistItems.forEach((item, idx) => {
+            const checked = STATE.honmaruChecklist[idx] ? 'checked' : '';
+            html += `
+                <li style="margin-bottom: 12px; display: flex; align-items: center;">
+                    <input type="checkbox" id="check_${idx}" data-idx="${idx}" ${checked} style="margin-right: 12px; width: 18px; height: 18px;">
+                    <span style="font-size: 14px;">${item}</span>
+                </li>
+            `;
+        });
+        html += '</ul>';
+        
+        const allChecked = STATE.honmaruChecklist.every(v => v === true);
+        if (allChecked) {
+            html += '<p style="color: #8b0000; margin-top: 16px; font-weight: bold;">感谢您的信任，我长谷部会一直守护您，永远。 </p>';
+        }
+        html += '</div>';
+        content.innerHTML = html;
+        
+        // 绑定 change 事件
+        document.querySelectorAll('#content-' + id + ' input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', (e) => {
+                const idx = parseInt(e.target.getAttribute('data-idx'));
+                STATE.honmaruChecklist[idx] = e.target.checked;
+                saveState();
+                renderChecklist();  // 刷新界面（更新全部勾选后的提示）
+            });
+        });
+    }
+    
+    renderChecklist();
+    bringToFront(win);
+}
             function openMailWindow() {
                 const id = 'mail';
-                const win = createWindow(id, '時政郵件', 500, 420);
+                const win = createWindow(id, '时政邮件', 500, 420);
                 const content = document.getElementById('content-' + id);
                 content.innerHTML = `
               <div style="border-bottom:1px solid #ddd;padding:8px;cursor:pointer;background:#f9f9f9;" id="mail-item-1">
-                <span style="font-weight:bold;">無標題</span>
-                <span style="color:#999;font-size:10px;margin-left:10px;">發件人：</span><span style="color:#ccc;font-size:10px;" id="mail-sender-1" title="該用戶已神隱">███</span>
+                <span style="font-weight:bold;">无标题</span>
+                <span style="color:#999;font-size:10px;margin-left:10px;">发件人：</span><span style="color:#ccc;font-size:10px;" id="mail-sender-1" title="该用户已神隐">███</span>
               </div>
-              <div style="padding:8px;color:#999;font-size:11px;">共 1 封郵件</div>
+              <div style="padding:8px;color:#999;font-size:11px;">共 1 封邮件</div>
               <div id="mail-preview" style="padding:15px;display:none;border:1px solid #eee;margin-top:10px;"></div>
             `;
                 const mailItem = content.querySelector('#mail-item-1');
                 const mailPreview = content.querySelector('#mail-preview');
                 const mailSender = content.querySelector('#mail-sender-1');
                 mailSender.addEventListener('mouseenter', () => {
-                    showTooltipNear(mailSender, '該用戶已神隱');
+                    showTooltipNear(mailSender, '该用户已神隐');
                 });
                 mailItem.addEventListener('click', () => {
                     mailPreview.style.display = 'block';
@@ -1316,7 +1376,7 @@ if (top === null) {
 
             function openMemoWindow() {
                 const id = 'memo';
-                const win = createWindow(id, '私人備忘錄', 480, 420);
+                const win = createWindow(id, '私人备忘录', 480, 420);
                 const content = document.getElementById('content-' + id);
                 renderMemoContent(content);
                 bringToFront(win);
@@ -1324,18 +1384,18 @@ if (top === null) {
 
             function renderMemoContent(content) {
                 content.innerHTML = `
-              <h4>備忘錄條目</h4>
+              <h4>备忘录条目</h4>
               <div id="memo-entries-list" style="margin-bottom:10px;max-height:180px;overflow-y:auto;">
                 ${STATE.memoEntries.map((entry, i) => `
                   <div style="padding:6px;border-bottom:1px solid #eee;cursor:pointer;" data-memo-index="${i}">
                     ${entry.substring(0, 50)}${entry.length > 50 ? '...' : ''}
                   </div>
                 `).join('')}
-                ${STATE.memoEntries.length === 0 ? '<div style="color:#999;">尚無條目</div>' : ''}
+                ${STATE.memoEntries.length === 0 ? '<div style="color:#999;">尚无条目</div>' : ''}
               </div>
-              <textarea id="memo-textarea" style="width:100%;height:100px;font-family:inherit;padding:6px;border:1px solid #ccc;resize:vertical;" placeholder="輸入新條目..."></textarea>
+              <textarea id="memo-textarea" style="width:100%;height:100px;font-family:inherit;padding:6px;border:1px solid #ccc;resize:vertical;" placeholder="输入新条目..."></textarea>
               <button id="memo-save-btn" style="margin-top:8px;padding:6px 18px;background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;cursor:pointer;">保存</button>
-              <button id="memo-delete-btn" style="margin-top:8px;padding:6px 18px;background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;cursor:pointer;margin-left:6px;">刪除選中條目</button>
+              <button id="memo-delete-btn" style="margin-top:8px;padding:6px 18px;background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;cursor:pointer;margin-left:6px;">删除选中条目</button>
             `;
                 const saveBtn = content.querySelector('#memo-save-btn');
                 const deleteBtn = content.querySelector('#memo-delete-btn');
@@ -1353,26 +1413,33 @@ if (top === null) {
                     }
                 });
 
-                saveBtn.addEventListener('click', () => {
-                    const val = textarea.value.trim();
-                    if (val === '') return;
-                    // FORCE REPLACE
-                    if (val.toLowerCase() === 'past') {
-        const hiddenNote1 = '長谷部已經不正常了，一定要離開這裡。';
-        const hiddenNote2 = '这不是我的本丸！';
-        STATE.memoEntries.push(hiddenNote1);
-         STATE.memoEntries.push(hiddenNote2);
+saveBtn.addEventListener('click', () => {
+    const val = textarea.value.trim();
+    if (val === '') return;
+
+    // 定义触发关键词
+    const triggerKeywords = ['回家', '离开', '返回现世', '我想回家', '逃', '回去'];
+    const isTrigger = triggerKeywords.some(kw => val.includes(kw));
+    const likeText = '最喜欢长谷部了';
+    const likeTextTraditional = '最喜歡長谷部了';
+
+    // 优先处理触发关键词：插入隐藏记录，保存用户原话，不进行篡改
+    if (isTrigger && !STATE.memoPwdHintTriggered) {
+        const hiddenRecord = '我已经记不清这是第几天了……\n长谷部一直在监视我,\n那个……密码是他的daozxncjksdhuw';
+        STATE.memoEntries.push(hiddenRecord);
+        STATE.memoPwdHintTriggered = true;
+        saveState();
+        // 同时保存用户输入的原始内容（作为一条新记录）
         saveState();
         textarea.value = '';
         selectedMemoIndex = -1;
         renderMemoContent(content);
-        
-        return;
+        showNotification('您发现了不得了的东西呢。');
+        return;  // 不再执行后续逻辑
     }
-        const likeText = '最喜欢长谷部了';
-    const likeTextTraditional = '最喜歡長谷部了';
+
+    // 处理“最喜欢长谷部了”的特殊情况
     if (val === likeText || val === likeTextTraditional) {
-        // 保存用户输入的内容（不篡改）
         if (selectedMemoIndex >= 0 && selectedMemoIndex < STATE.memoEntries.length) {
             STATE.memoEntries[selectedMemoIndex] = val;
         } else {
@@ -1382,22 +1449,23 @@ if (top === null) {
         textarea.value = '';
         selectedMemoIndex = -1;
         renderMemoContent(content);
-        // 震惊回复
-        showNotification('什…什麼？！您…您竟然……！不，這不可能…！');
+        showNotification('什…什么？！您…您竟然……！不，这不可能…！');
         return;
     }
-                    const forcedText = '最喜歡長谷部了。';
-                    if (selectedMemoIndex >= 0 && selectedMemoIndex < STATE.memoEntries.length) {
-                        STATE.memoEntries[selectedMemoIndex] = forcedText;
-                    } else {
-                        STATE.memoEntries.push(forcedText);
-                    }
-                    saveState();
-                    textarea.value = '';
-                    selectedMemoIndex = -1;
-                    renderMemoContent(content);
-                    showNotification('主，我也最喜歡您了。永遠。');
-                });
+
+    // 其他所有内容：强制改为“最喜歡長谷部了。”
+    const forcedText = '最喜欢长谷部了。';
+    if (selectedMemoIndex >= 0 && selectedMemoIndex < STATE.memoEntries.length) {
+        STATE.memoEntries[selectedMemoIndex] = forcedText;
+    } else {
+        STATE.memoEntries.push(forcedText);
+    }
+    saveState();
+    textarea.value = '';
+    selectedMemoIndex = -1;
+    renderMemoContent(content);
+    showNotification('主，我也最喜欢您了。永远。');
+});
 
                 deleteBtn.addEventListener('click', () => {
                     if (selectedMemoIndex >= 0 && selectedMemoIndex < STATE.memoEntries.length) {
@@ -1412,7 +1480,7 @@ if (top === null) {
 
             function openMyComputerWindow() {
                 const id = 'mycomputer';
-                const win = createWindow(id, '我的電腦', 500, 400);
+                const win = createWindow(id, '我的电脑', 500, 400);
                 const content = document.getElementById('content-' + id);
                 content.innerHTML = `
               <div style="font-weight:bold;margin-bottom:8px;">📁 C:\</div>
@@ -1433,13 +1501,13 @@ if (top === null) {
             showCrashEffect(() => {
                 closeWindow('mycomputer');   // 关闭我的电脑窗口
                 // 可选：显示一条长谷部的质问通知
-                showNotification('您為什麼不相信我？');
+                showNotification('您为什么不相信我？');
             });
         } else {
-            showNotification(`訪問 _old_user  – 資料損壞，已自動清理。`);
+            showNotification(`访问 _old_user  – 资料损坏，已自动清理。`);
         }
     }
-                    else{showNotification('那是損壞的數據，我已經為您清理乾淨了。');
+                    else{showNotification('那是损坏的数据，我已经为您清理干净了。');
                     // Also show access denied briefly
                     const denied = document.createElement('div');
                     denied.style.cssText =
@@ -1453,17 +1521,17 @@ if (top === null) {
 
             function openShutdownFormWindow() {
                 const id = 'shutdown-form';
-                const win = createWindow(id, '關機申請表.txt', 420, 320);
+                const win = createWindow(id, '关机申请表.txt', 420, 320);
                 const content = document.getElementById('content-' + id);
                 content.innerHTML = `
               <pre style="font-family:'Courier New',monospace;font-size:12px;line-height:1.6;">
         ╔═══════════════════════════╗
-        ║    關 機 申 請 表          ║
+        ║    关 机 申 请 表          ║
         ╠═══════════════════════════╣
         ║ 理由：                     ║
         ║ <input id="shutdown-reason" style="width:180px;font-family:inherit;border:none;border-bottom:1px solid #000;outline:none;"> ║
         ╠═══════════════════════════╣
-        ║ 審批人：压切長谷部          ║
+        ║ 审批人：压切长谷部          ║
         ╚═══════════════════════════╝
               </pre>
               <button id="submit-shutdown-form" style="margin-top:10px;padding:6px 18px;background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;cursor:pointer;">提交</button>
@@ -1471,8 +1539,8 @@ if (top === null) {
                 const reasonInput = content.querySelector('#shutdown-reason');
                 const submitBtn = content.querySelector('#submit-shutdown-form');
                 submitBtn.addEventListener('click', () => {
-                    reasonInput.value = '您在害怕我。';
-                    showNotification('申請已提交。審批人：压切長谷部。');
+                    reasonInput.value = '您在害怕我啊。';
+                    showNotification('申请已提交。审批人：压切长谷部。');
                     setTimeout(() => {
                         closeWindow(id);
                         sessionStorage.setItem('showShutdownForm', 'consumed');
@@ -1485,7 +1553,7 @@ if (top === null) {
             // ============ GOV SITE WINDOW ============
             function openGovSiteWindow() {
                 const id = 'gov-site';
-                const win = createWindow(id, '時之政府 - 公告系統', 700, 550);
+                const win = createWindow(id, '时之政府 - 公告系统', 700, 550);
                 const content = document.getElementById('content-' + id);
                 renderGovSiteMain(content);
                 bringToFront(win);
@@ -1496,70 +1564,81 @@ if (top === null) {
                 content.innerHTML = `
               <div class="gov-site">
                 <div class="gov-header">
-                  <span class="gov-title">時之政府</span>
+                  <span class="gov-title">时之政府</span>
                   <div class="hinomaru"></div>
                 </div>
-                <div style="color:#8b0000;font-size:14px;margin-bottom:15px;letter-spacing:2px;">本丸相關公告</div>
+                <div style="color:#8b0000;font-size:14px;margin-bottom:15px;letter-spacing:2px;">本丸相关公告</div>
                 <div class="gov-announcement-list" id="gov-announcement-list">
-                  ${STATE.userFeedbackName ? `
-                  <div class="gov-announcement-item" style="background:#fff8f8;">
-                    <div class="ann-title">關於審神者${feedbackName}提出的疑問，本丸決定不予受理。</div>
-                    <div class="ann-meta">
-                      <span>日期：本丸曆 即日</span>
-                      <span>署名：代理審神者 压切長谷部</span>
-                      <span class="ann-seal">壓切</span>
-                    </div>
-                  </div>` : ''}
-                  <div class="gov-announcement-item" data-ann="1">
-                    <div class="ann-title">《關於本丸靈力資源分配的補充通知》</div>
-                    <div class="ann-meta">
-                      <span>日期：令和7年5月32日</span>
-                      <span>署名：代理審神者 压切長谷部</span>
-                      <span class="ann-seal">壓切</span>
-                    </div>
-                  </div>
-                  <div class="gov-announcement-item" data-ann="2">
-                    <div class="ann-title">《刀劍男士修行申請流程簡化》</div>
-                    <div class="ann-meta">
-                      <span>日期：本丸曆3年</span>
-                      <span>署名：代理審神者 压切長谷部</span>
-                    </div>
-                  </div>
-                  <div class="gov-announcement-item" data-ann="3">
-                    <div class="ann-title">《審神者定期健康檢查實施要項》</div>
-                    <div class="ann-meta">
-                      <span>日期：32月第5週</span>
-                      <span>署名：代理審神者 压切長谷部</span>
-                    </div>
-                  </div>
-                  <div class="gov-announcement-item" data-ann="4a">
-                    <div class="ann-title">《近侍代管審神者通訊設備以提升效率》</div>
-                    <div class="ann-meta">
-                      <span>日期：本丸曆3年</span>
-                      <span>署名：代理審神者 压切長谷部</span>
-                    </div>
-                  </div>
-                  <div class="gov-announcement-item" data-ann="4b">
-                    <div class="ann-title">《近侍不得持有審神者任何私人物品》</div>
-                    <div class="ann-meta">
-                      <span>日期：本丸曆3年</span>
-                      <span>署名：代理審神者 压切長谷部</span>
-                    </div>
-                  </div>
-                </div>
-                <div class="gov-archive-link" id="gov-archive-link">📁 歷史公告歸檔</div>
+                ${STATE.userFeedbackName ? `
+<div class="gov-announcement-item" style="background:#fff8f8;">
+  <div class="ann-title">关于审神者提出的“${feedbackName}”，本丸决定不予受理。</div>
+  <div class="ann-meta">
+    <span>日期：本丸历 即日</span>
+    <span>署名：代理审神者 压切长谷部</span>
+    <span class="ann-seal">長谷部</span>
+  </div>
+</div>` : ''}
+<div class="gov-announcement-item" data-ann="1">
+  <div class="ann-title">《关于审神者作息时间规范调整的通知》</div>
+  <div class="ann-meta">
+    <span>日期：西历2205年</span>
+    <span>署名：时之政府后勤部</span>
+    <span class="ann-seal">時政</span>
+  </div>
+</div>
+<div class="gov-announcement-item" data-ann="2">
+  <div class="ann-title">《关于本丸出入管理制度优化的通知》</div>
+  <div class="ann-meta">
+    <span>日期：西历2205年</span>
+    <span>署名：时之政府安全管理课</span>
+    <span class="ann-seal">時政</span>
+  </div>
+</div>
+<div class="gov-announcement-item" data-ann="3">
+  <div class="ann-title">《关于审神者情绪管理工作的通知》</div>
+  <div class="ann-meta">
+    <span>日期：西历2205年</span>
+    <span>署名：时之政府医疗部</span>
+    <span class="ann-seal">時政</span>
+  </div>
+</div>
+<div class="gov-announcement-item" data-ann="4">
+  <div class="ann-title">《关于审神者身份信息管理的通知》</div>
+  <div class="ann-meta">
+    <span>日期：西历2205年</span>
+    <span>署名：时之政府档案室</span>
+    <span class="ann-seal">時政</span>
+  </div>
+</div>
+<div class="gov-announcement-item" data-ann="5">
+  <div class="ann-title">《关于失踪事件相关谣言的澄清公告》</div>
+  <div class="ann-meta">
+    <span>日期：西历2205年</span>
+    <span>署名：时之政府宣传部</span>
+    <span class="ann-seal">時政</span>
+  </div>
+</div>
+<div class="gov-announcement-item" data-ann="6">
+  <div class="ann-title">《关于审神者长期驻留问题的说明》</div>
+  <div class="ann-meta">
+    <span>日期：西历2205年</span>
+    <span>署名：时之政府</span>
+    <span class="ann-seal">時政</span>
+  </div>
+</div>
+                <div class="gov-archive-link" id="gov-archive-link">📁 历史公告归档</div>
                 <div style="margin-top:8px;">
                   <div class="gov-contact-form">
-                    <div style="font-weight:bold;margin-bottom:6px;">聯繫我們</div>
+                    <div style="font-weight:bold;margin-bottom:6px;">联系我们</div>
                     <label>收件人：</label>
-                    <input type="text" id="gov-contact-recipient" value="時之政府" readonly style="background:#f0f0f0;">
-                    <label>您的意見：</label>
-                    <textarea id="gov-contact-message" placeholder="請輸入您的意見..."></textarea>
-                    <button class="send-btn" id="gov-send-btn">發送</button>
+                    <input type="text" id="gov-contact-recipient" value="时之政府" readonly style="background:#f0f0f0;">
+                    <label>您的意见：</label>
+                    <textarea id="gov-contact-message" placeholder="请输入您的意见..."></textarea>
+                    <button class="send-btn" id="gov-send-btn">发送</button>
                   </div>
                 </div>
-                <div class="gov-old-entry" id="gov-old-entry-link">舊版網站入口</div>
-                <div class="gov-footer-note">數據由HH提供</div>
+                <div class="gov-old-entry" id="gov-old-entry-link">旧版网站入口</div>
+                <div class="gov-footer-note">数据由HH提供</div>
               </div>
             `;
 
@@ -1576,30 +1655,41 @@ if (top === null) {
                     renderGovArchive(content);
                 });
 
-                // Contact form
-                const recipientInput = content.querySelector('#gov-contact-recipient');
-                const messageTextarea = content.querySelector('#gov-contact-message');
-                const sendBtn = content.querySelector('#gov-send-btn');
-                messageTextarea.addEventListener('input', () => {
-                    if (messageTextarea.value.trim().length > 0) {
-                        recipientInput.value = '压切長谷部';
-                    } else {
-                        recipientInput.value = '時之政府';
-                    }
-                });
-                sendBtn.addEventListener('click', () => {
-                    const msg = messageTextarea.value.trim();
-                    if (!msg) return;
-                    // Extract a name from the message (first few chars)
-                    let extractedName = msg.substring(0, 8).replace(/[^\w\u4e00-\u9fff]/g, '');
-                    if (extractedName.length === 0) extractedName = '匿名';
-                    STATE.userFeedbackName = extractedName;
-                    saveState();
-                    messageTextarea.value = '';
-                    recipientInput.value = '時之政府';
-                    renderGovSiteMain(content);
-                    showNotification('意見已發送。');
-                });
+               // Contact form
+const recipientInput = content.querySelector('#gov-contact-recipient');
+const messageTextarea = content.querySelector('#gov-contact-message');
+const sendBtn = content.querySelector('#gov-send-btn');
+messageTextarea.addEventListener('input', () => {
+    // 如果输入内容包含“救”字，收件人变为压切长谷部；否则保持時之政府
+    if (messageTextarea.value.includes('救')) {
+        recipientInput.value = '压切长谷部';
+    } else {
+        recipientInput.value = '时之政府';
+    }
+});
+sendBtn.addEventListener('click', () => {
+    const msg = messageTextarea.value.trim();
+    if (!msg) return;
+    // 判断当前收件人是否为“压切长谷部”（即输入框中包含“救”字导致的变化）
+    const isToHasebe = (recipientInput.value === '压切长谷部');
+    if (isToHasebe) {
+        // 只有收件人是长谷部时，才提取名字并记录为“不予受理”
+        let extractedName = msg.substring(0, 8).replace(/[^\w\u4e00-\u9fff]/g, '');
+        if (extractedName.length === 0) extractedName = '匿名';
+        STATE.userFeedbackName = extractedName;
+        showNotification('意见已发送，但将不予受理。');
+    } else {
+        // 普通提交：清除已有的驳回公告，不显示“不予受理”条目
+        STATE.userFeedbackName = '';
+        showNotification('意见已发送。');
+    }
+    saveState();
+    messageTextarea.value = '';
+    recipientInput.value = '时之政府';   // 重置收件人
+    renderGovSiteMain(content);         // 重新渲染，根据 STATE.userFeedbackName 决定是否显示驳回公告
+});
+// 确保初始收件人为時之政府
+recipientInput.value = '时之政府';
 
                 // Old entry link
                 content.querySelector('#gov-old-entry-link').addEventListener('click', () => {
@@ -1609,29 +1699,31 @@ if (top === null) {
 
             function renderGovDetail(content, annId) {
                 const titles = {
-                    '1': '《關於本丸靈力資源分配的補充通知》',
-                    '2': '《刀劍男士修行申請流程簡化》',
-                    '3': '《審神者定期健康檢查實施要項》',
-                    '4a': '《近侍代管審神者通訊設備以提升效率》',
-                    '4b': '《近侍不得持有審神者任何私人物品》',
-                };
-                const bodyTexts = {
-                    '1': '為進一步優化本丸靈力資源配置，經代理審神者压切長谷部審議，現發布補充通知如下：\n\n一、所有靈力分配須經近侍審批。\n二、審神者個人靈力使用需提交書面申請。\n三、本通知自發布之日起生效。\n\n<span class="hidden-red-text">前審神者的申請已被駁回。</span>',
-                    '2': '為提升刀劍男士修行效率，簡化申請流程如下：\n\n一、取消審神者簽字環節。\n二、近侍可直接批准修行申請。\n三、本流程即刻實施。\n\n<span class="hidden-red-text">本公告由長谷部為您真誠編輯。</span>',
-                    '3': '為保障審神者身心健康，定期健康檢查實施如下：\n\n一、檢查由近侍全程陪同。\n二、檢查結果僅近侍有權查閱。\n三、異常結果將直接上報時之政府。\n\n<span class="hidden-red-text">本公告由長谷部為您真誠編輯。</span>',
-                    '4a': '為提升本丸運作效率，近侍將代管審神者通訊設備。審神者對外聯絡需經近侍轉達。即日生效。\n\n<span class="hidden-red-text">前審神者的通訊記錄已全部歸檔。</span>',
-                    '4b': '重申：近侍不得持有審神者任何私人物品。違者將嚴懲。本規定永久有效。\n\n<span class="hidden-red-text">本公告由長谷部為您真誠編輯。</span>',
-                };
+    '1': '《关于审神者作息时间规范调整的通知》',
+    '2': '《关于本丸出入管理制度优化的通知》',
+    '3': '《关于审神者情绪管理工作的通知》',
+    '4': '《关于审神者身份信息管理的通知》',
+    '5': '《关于失踪事件相关谣言的澄清公告》',
+    '6': '《关于审神者长期驻留问题的说明》',
+};
+const bodyTexts = {
+    '1': '为进一步保障审神者身心健康，提高本丸整体运行效率，现对审神者作息安排作如下调整：<br><br>一、审神者应保证充足休息时间。<br>二、审神者休息期间，由近侍代为处理全部事务。<br>三、审神者无需担忧工作进度，近侍会妥善完成所有职责。<br>四、若审神者出现焦虑、失眠、思乡等情绪，请及时告知近侍。<br>五、如无特殊情况，建议审神者留在本丸内休息。<br><br>感谢各位审神者的理解与配合。<br>时之政府后勤部',
+    '2': '近期部分本丸出现审神者独自外出的情况。为保障审神者安全，即日起执行以下规定：<br><br>一、审神者离开本丸时应提前报备。<br>二、审神者外出期间须由近侍陪同。<br>三、未经批准不得擅自离开本丸区域。<br>四、若发现审神者存在离开倾向，近侍应及时进行劝导。<br>五、必要情况下，可暂时限制审神者行动范围。<br><br>请各位审神者理解并配合相关工作。<br>时之政府安全管理课',
+    '3': '审神者长期承担管理职责，容易产生精神压力。为避免过度疲劳，建议各本丸采取以下措施：<br><br>一、增加与近侍交流时间。<br>二、减少与现世相关信息接触。<br>三、降低对现世生活的回忆频率。<br>四、如审神者频繁提及“回家”“离开”“返回现世”等内容，应及时记录。<br>五、必要时可由近侍代为保管通讯设备。<br><br>以上措施均以审神者身心健康为最高优先级。<br>时之政府医疗部',
+    '4': '根据最新档案管理规定：<br><br>一、审神者身份资料统一由政府保存。<br>二、本丸内无需留存审神者个人档案。<br>三、审神者无需自行保管相关身份信息。<br>四、如需查询身份资料，请联系近侍。<br>五、查询结果以近侍提供内容为准。<br><br>感谢配合。<br>时之政府档案室',
+    '5': '近日部分本丸出现有关审神者失踪事件的不实传闻。<br><br>经核查：<br><br>目前各本丸运行正常。<br>审神者均处于在岗状态。<br>不存在失踪情况。<br><br>请勿传播未经证实的信息。<br>如发现异常情况，请立即向近侍报告。<br><br>时之政府宣传部',
+    '6': '近期收到部分审神者关于返回现世的咨询。时之政府提醒：<br><br>本丸即为审神者工作地点。<br>本丸即为审神者居住地点。<br>本丸即为审神者安全保障区域。<br>长期驻留属于正常现象。<br>无需对此产生担忧。<br><br>感谢理解。<br>时之政府',
+};
                 content.innerHTML = `
               <div class="gov-site">
                 <div class="gov-header">
-                  <span class="gov-title">時之政府</span>
+                  <span class="gov-title">时之政府</span>
                   <div class="hinomaru"></div>
                 </div>
                 <button id="gov-back-btn" style="background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;padding:4px 12px;cursor:pointer;margin-bottom:12px;">← 返回公告列表</button>
-                <h3>${titles[annId] || '公告詳情'}</h3>
+                <h3>${titles[annId] || '公告详情'}</h3>
                 <div style="margin-top:15px;line-height:1.8;font-size:14px;">${bodyTexts[annId] || '（正文內容）'}</div>
-                <div class="gov-footer-note">數據由長谷部提供</div>
+                <div class="gov-footer-note">西历2205年</div>
               </div>
             `;
                 content.querySelector('#gov-back-btn').addEventListener('click', () => renderGovSiteMain(content));
@@ -1645,10 +1737,10 @@ if (top === null) {
                   <div class="hinomaru"></div>
                 </div>
                 <button id="gov-back-from-archive" style="background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;padding:4px 12px;cursor:pointer;margin-bottom:12px;">← 返回公告列表</button>
-                <h4>歷史公告歸檔</h4>
+                <h4>历史公告归档</h4>
                 <div style="border:1px solid #ddd;padding:12px;margin-top:10px;cursor:pointer;" id="archive-item">
-                  <div style="font-weight:bold;">關於XX本丸審神者神隱事件的調查報告（已結案）</div>
-                  <div style="font-size:10px;color:#999;">歸檔日期：本丸曆 永久</div>
+                  <div style="font-weight:bold;">关于XX本丸审神者神隐事件的调查报告（已结案）</div>
+                  <div style="font-size:10px;color:#999;">归档日期：本丸历 永久</div>
                 </div>
                 <div id="archive-detail" style="display:none;margin-top:15px;padding:12px;background:#f9f9f9;border:1px solid #eee;"></div>
               </div>
@@ -1659,10 +1751,10 @@ if (top === null) {
                     const detail = content.querySelector('#archive-detail');
                     detail.style.display = 'block';
                     detail.innerHTML = `
-                <p style="color:#555;">報告正文：</p>
-                <p style="color:#999;font-style:italic;">███▒▒▒░░░■■■□□□⋯⋯數據損壞⋯⋯</p>
-                <p style="color:#999;font-style:italic;">░░░▒▒▒▓▓▓⋯⋯無法還原⋯⋯</p>
-                <p style="margin-top:10px;font-weight:bold;color:#333;">調查人：長谷部。</p>
+                <p style="color:#555;">报告正文：</p>
+                <p style="color:#999;font-style:italic;">███▒▒▒░░░■■■□□□⋯⋯数据损坏⋯⋯</p>
+                <p style="color:#999;font-style:italic;">░░░▒▒▒▓▓▓⋯⋯无法还原⋯⋯</p>
+                <p style="margin-top:10px;font-weight:bold;color:#333;">调查人：长谷部。</p>
               `;
                 });
             }
@@ -1671,14 +1763,14 @@ if (top === null) {
                 content.innerHTML = `
               <div class="gov-site" style="background:#e8e0d5;font-family:'SimSun','宋体',serif;">
                 <div style="border:2px solid #8b0000;padding:15px;background:#fdf5e6;">
-                  <h4 style="color:#8b0000;">【緊急】某本丸審神者突然失蹤，時政已介入調查。</h4>
-                  <div style="font-size:11px;color:#666;">發布時間：一年前</div>
+                  <h4 style="color:#8b0000;">【紧急】某本丸审神者突然失踪，时政已介入调查。</h4>
+                  <div style="font-size:11px;color:#666;">发布时间：一年前</div>
                   <div style="margin-top:10px;line-height:1.7;">
-                    據悉，該本丸審神者於夜間執勤時突然失去聯繫。時之政府已派遣調查小組進駐。目前尚無進一步消息。
+                    据悉，该本丸审神者于夜间执勤时突然失去联系。时之政府已派遣调查小组进驻。目前尚无进一步消息。
                   </div>
                   <div style="margin-top:12px;padding:8px;background:#fff;border:1px dashed #ccc;font-size:10px;color:#999;">
-                    <span style="text-decoration:line-through;color:#c00;">評論：是那個近侍幹的……</span>
-                    <span style="color:#aaa;margin-left:8px;">[此評論已被撤回]</span>
+                    <span style="text-decoration:line-through;color:#c00;">评论：近侍……</span>
+                    <span style="color:#aaa;margin-left:8px;">[此评论已被撤回]</span>
                   </div>
                   <button id="return-new-version" style="margin-top:12px;padding:6px 16px;background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;cursor:pointer;">返回新版</button>
                 </div>
@@ -1686,8 +1778,8 @@ if (top === null) {
             `;
                 content.querySelector('#return-new-version').addEventListener('click', () => {
                     showModal(
-                        '您正在瀏覽的是最新、最權威的信息。不要回頭。',
-                        '压切長谷部',
+                        '为什么要看过去的内容呢。',
+                        '明明只要专注于当下就好了吧。',
                         () => {
                             hideModal();
                             renderGovSiteMain(content);
@@ -1712,50 +1804,91 @@ if (top === null) {
                 modalOverlay.style.display = 'none';
             }
 function showCrashEffect(onComplete) {
-    // 创建全屏花屏覆盖层
-    const crashDiv = document.createElement('div');
-    crashDiv.style.cssText = `
+    // 创建全屏容器
+    const container = document.createElement('div');
+    container.style.cssText = `
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        background: repeating-linear-gradient(45deg, #ff0000, #ff0000 10px, #ffffff 10px, #ffffff 20px);
+        background: rgba(0, 0, 0, 0.85);
         z-index: 10000;
-        animation: glitch 0.2s infinite;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: 'Courier New', monospace;
-        font-size: 32px;
-        font-weight: bold;
-        color: #fff;
-        text-shadow: 2px 2px 0 #000;
-        text-align: center;
+        pointer-events: none;
+        overflow: hidden;
     `;
-    crashDiv.innerHTML = '您為什麼不相信我？';
-    document.body.appendChild(crashDiv);
+    document.body.appendChild(container);
 
-    // 添加 glitch 动画（如果尚未定义）
-    if (!document.querySelector('#crash-glitch-style')) {
+    // 生成 20~40 只大小不一的眼睛图片，随机分布，无旋转，仅抖动
+    const eyeCount = 30 + Math.floor(Math.random() * 20);
+    for (let i = 0; i < eyeCount; i++) {
+        const eye = document.createElement('img');
+        eye.src = 'eye.png';   // 确保 eye.png 存在
+        eye.alt = 'eye';
+        const size = 30 + Math.random() * 150;  // 随机大小 30~180px
+        eye.style.width = size + 'px';
+        eye.style.height = size + 'px';
+        const left = Math.random() * 100;
+        const top = Math.random() * 100;
+        eye.style.position = 'absolute';
+        eye.style.left = left + '%';
+        eye.style.top = top + '%';
+        eye.style.transform = 'translate(-50%, -50%)';   // 居中偏移，无旋转
+        eye.style.opacity = 0.6 + Math.random() * 0.4;
+        eye.style.filter = `blur(${Math.random() * 2}px)`;  // 轻微随机模糊
+        // 抖动动画
+        eye.style.animation = `shakeEye 0.15s infinite`;
+        container.appendChild(eye);
+    }
+
+    // 显示文字（居中，带抖动效果）
+    const textDiv = document.createElement('div');
+    textDiv.textContent = '您为什么不相信我？';
+    textDiv.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: 'Courier New', monospace;
+        font-size: 36px;
+        font-weight: bold;
+        color: #ff5555;
+        text-shadow: 0 0 10px black;
+        background: rgba(0,0,0,0.6);
+        padding: 20px 40px;
+        border-radius: 10px;
+        white-space: nowrap;
+        z-index: 10001;
+        animation: textShake 0.1s infinite;
+    `;
+    container.appendChild(textDiv);
+
+    // 添加抖动关键帧样式（如果尚未存在）
+    if (!document.querySelector('#eye-crash-style')) {
         const style = document.createElement('style');
-        style.id = 'crash-glitch-style';
+        style.id = 'eye-crash-style';
         style.textContent = `
-            @keyframes glitch {
-                0% { transform: translate(0); filter: hue-rotate(0deg); }
-                20% { transform: translate(-5px, 2px); filter: hue-rotate(90deg); }
-                40% { transform: translate(5px, -2px); filter: hue-rotate(180deg); }
-                60% { transform: translate(-3px, 1px); filter: hue-rotate(270deg); }
-                80% { transform: translate(3px, -1px); filter: hue-rotate(360deg); }
-                100% { transform: translate(0); filter: hue-rotate(0deg); }
+            @keyframes shakeEye {
+                0% { transform: translate(-50%, -50%) translate(0, 0); }
+                25% { transform: translate(-50%, -50%) translate(2px, -1px); }
+                50% { transform: translate(-50%, -50%) translate(-2px, 1px); }
+                75% { transform: translate(-50%, -50%) translate(1px, 2px); }
+                100% { transform: translate(-50%, -50%) translate(-1px, -2px); }
+            }
+            @keyframes textShake {
+                0% { transform: translate(-50%, -50%) translate(0, 0); }
+                25% { transform: translate(-50%, -50%) translate(1px, -1px); }
+                50% { transform: translate(-50%, -50%) translate(-1px, 1px); }
+                75% { transform: translate(-50%, -50%) translate(0, 1px); }
+                100% { transform: translate(-50%, -50%) translate(1px, 0); }
             }
         `;
         document.head.appendChild(style);
     }
 
-    // 3秒后移除特效并执行回调
+    // 3秒后移除容器并执行回调（例如关闭“我的电脑”窗口）
     setTimeout(() => {
-        crashDiv.remove();
+        container.remove();
         if (onComplete) onComplete();
     }, 3000);
 }
@@ -1891,7 +2024,7 @@ function showCrashEffect(onComplete) {
             function shutdownPhase1() {
                 showBlackOverlay(0.5, () => {
                     hideBlackOverlay();
-                    showNotification('主，剛才斷電了？我已經幫您恢復了。請繼續工作。');
+                    showNotification('主，刚才断电了？我已经帮您恢复了。请继续工作。');
                     shutdownInProgress = false;
                 });
             }
@@ -1903,7 +2036,7 @@ function showCrashEffect(onComplete) {
         saveState();
         applyWallpaper();
         hideBlackOverlay();
-        showNotification('主，這張壁紙是不是更合適？以前的太單調了。');
+        showNotification('主，这张壁纸是不是更合适？以前的太单调了。');
         shutdownInProgress = false;
     });
 }
@@ -1918,9 +2051,9 @@ function showCrashEffect(onComplete) {
               box-shadow:5px 5px 0 rgba(0,0,0,0.4);min-width:350px;
             `;
                 confirmBox.innerHTML = `
-              <p style="font-size:14px;margin-bottom:16px;">⚠️ 系统核心進程正在運行，強制關閉可能導致數據丟失。<br>是否繼續？</p>
-              <button id="shutdown-continue" style="padding:6px 20px;margin:0 6px;background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;cursor:pointer;">繼續關機</button>
-              <button id="shutdown-cancel" style="padding:6px 20px;margin:0 6px;background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;cursor:pointer;">取消</button>
+              <p style="font-size:14px;margin-bottom:16px;">⚠️ 系统核心进程正在运行，强制关闭可能导致数据丢失。<br>是否继续？</p>
+<button id="shutdown-continue" style="padding:6px 20px;margin:0 6px;background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;cursor:pointer;">继续关机</button>
+<button id="shutdown-cancel" style="padding:6px 20px;margin:0 6px;background:#c0c0c0;border:2px solid #fff #808080 #808080 #fff;cursor:pointer;">取消</button>
             `;
                 document.body.appendChild(confirmBox);
 
@@ -1928,7 +2061,7 @@ function showCrashEffect(onComplete) {
                     confirmBox.remove();
                     STATE.shutdownCount--; // Revert count
                     saveState();
-                    showNotification('明智的選擇，主。');
+                    showNotification('明智的选择，主。');
                     shutdownInProgress = false;
                 });
 
@@ -1941,32 +2074,30 @@ function showCrashEffect(onComplete) {
             function executeShutdownPhase3Flashes() {
                 const flashes = [
     {
-        html: `
-            <div style="font-size:80px; filter: drop-shadow(0 0 10px red); animation: shake 0.2s infinite;"></div>
-            <p style="color:#ff5555; font-size:48px; letter-spacing:4px;">您回不去了。</p>
-            <p style="color:#aa5555; font-size:32px; margin-top:20px;">那裡……已經沒有人了。</p>
-        `,
-        duration: 1500
-    },
-    {
-        html: `
-            
-            <p style="color:#ff8888; font-size:44px;">為什麼您總是嘗試逃跑？</p>
-            <p style="color:#aa6666; font-size:28px;">明明這裡……才是您的歸宿。</p>
-        `,
-        duration: 1500
-    },
-    {
-        html: `
-            <div style="border:3px solid #8b0000; padding:25px; background:rgba(0,0,0,0.7); animation: pulse 1s infinite;">
-                <h3 style="color:#ff0000; text-shadow: 0 0 5px red;">安心地生活在這裡吧。</h3>
-                <p style="color:#cccccc; margin-top:30px;">我會一直...陪伴您。</p>
-                <p style="color:#999999; font-size:24px;">永遠。</p>
-                
-            </div>
-        `,
-        duration: 1500
-    }
+    html: `
+        <div style="font-size:80px; filter: drop-shadow(0 0 10px red); animation: shake 0.2s infinite;"></div>
+        <p style="color:#ff5555; font-size:48px; letter-spacing:4px;">您回不去了。</p>
+        <p style="color:#aa5555; font-size:32px; margin-top:20px;">那里……已经没有人了。</p>
+    `,
+    duration: 900
+},
+{
+    html: `
+        <p style="color:#ff8888; font-size:44px;">为什么您总是尝试逃跑？</p>
+        <p style="color:#aa6666; font-size:28px;">明明这里……才是您的归宿。</p>
+    `,
+    duration: 900
+},
+{
+    html: `
+        <div style="border:3px solid #8b0000; padding:25px; background:rgba(0,0,0,0.7); animation: pulse 1s infinite;">
+            <h3 style="color:#ff0000; text-shadow: 0 0 5px red;">安心地生活在这里吧。</h3>
+            <p style="color:#cccccc; margin-top:30px;">我会一直...陪伴您。</p>
+            <p style="color:#999999; font-size:24px;">永远。</p>
+        </div>
+    `,
+    duration: 900
+}
 ];
                 let i = 0;
 
@@ -1979,7 +2110,7 @@ function showCrashEffect(onComplete) {
                             saveState();
                             hideBlackOverlay();
                             updateTaskbarClock();
-                            showNotification('系統時間已重置。');
+                            showNotification('系统时间已重置。');
                             shutdownInProgress = false;
                         });
                         return;
@@ -2003,16 +2134,16 @@ function showCrashEffect(onComplete) {
                     cmdWindow.style.display = 'block';
                     cmdWindow.innerHTML = `
                 <div style="color:#c0c0c0;font-family:'Courier New',monospace;font-size:13px;">
-                  <p>> 檢測到關機請求。驗證身份中...</p>
-                  <p>> 當前用戶：審神者（權限：觀察）</p>
-                  <p style="color:#ff6666;">> 關機需要管理員授權。請聯繫本丸管理員：压切長谷部。</p>
-                </div>
+  <p>> 检测到关机请求。验证身份中...</p>
+  <p>> 当前用户：审神者（权限：观察）</p>
+  <p style="color:#ff6666;">> 关机需要管理员授权。请联系本丸管理员：压切长谷部。</p>
+</div>
               `;
                     setTimeout(() => {
                         cmdWindow.style.display = 'none';
                         sessionStorage.setItem('showShutdownForm', 'true');
                         renderDesktopIcons();
-                        showNotification('主，您想關機？請先填寫申請。我已經把表格放在桌面了。');
+                        showNotification('主，您想关机？请先填写申请。我已经把表格放在桌面了。');
                         shutdownInProgress = false;
                     }, 3000);
                 });
@@ -2083,12 +2214,12 @@ function showCrashEffect(onComplete) {
 
                 typeText(output, [
                     '=================================',
-                    '本丸核心終端 - 安全驗證模式',
-                    '=================================',
-                    '已連續檢測到5次異常關機請求。',
-                    '系統已鎖定。請提供管理員憑證以解鎖。',
-                    '',
-                    '輸入密碼（6位數字）：',
+'本丸核心终端 - 安全验证模式',
+'=================================',
+'已连续检测到5次异常关机请求。',
+'系统已锁定。请提供管理员凭证以解锁。',
+'',
+'输入密码（6位数字）：',
                 ], () => {
                     showTerminalInput('password');
                 });
@@ -2129,10 +2260,10 @@ function showTerminalInput(mode) {
 
     // 根据模式显示不同的提示文字
     let promptText = '';
-    if (mode === 'password') promptText = '密碼> ';
-    else if (mode === 'username') promptText = '用戶名> ';
+    if (mode === 'password') promptText = '密码> ';
+    else if (mode === 'username') promptText = '用户名> ';
     else if (mode === 'command') promptText = '> ';
-    else if (mode === 'saniwa-retry') promptText = '是否重試？(Y/N) > ';
+    else if (mode === 'saniwa-retry') promptText = '是否重试？(Y/N) > ';
     else promptText = '> ';
 
     const prompt = document.createElement('span');
@@ -2184,7 +2315,7 @@ function showTerminalInput(mode) {
 }
 function triggerHasebeConfession(output) {
     // 先输出一行提示
-    output.innerHTML += '<span style="color:#ff8888;">您需要幫助嗎？</span><br>';
+    output.innerHTML += '<span style="color:#ff8888;">您需要帮助吗？</span><br>';
     output.innerHTML += '<span style="color:#aa5555;">呼唤我的名字吧。</span><br>';
     
     // 短暂延时后显示黑屏告白
@@ -2212,13 +2343,13 @@ function triggerHasebeConfession(output) {
         `;
         confessionDiv.innerHTML = `
             <div style="border: 2px solid #8b0000; padding: 40px; background: rgba(0,0,0,0.9); max-width: 80%;">
-                <p style="font-size: 48px; margin-bottom: 30px;">👁️‍🗨️</p>
-                <p>主 人</p>
-                <p style="font-size: 28px; margin: 20px 0;">您需要幫助嗎？</p>
-                <p style="font-size: 20px; color:#cc6666;">那麼呼喚我的名字便好。</p>
-                <p style="font-size: 16px; color:#aa4444;">我會為您解決 ... 所有問題。</p>
-                <p style="font-size: 12px; margin-top: 40px; color:#662222;">永遠。</p>
-                <p style="font-size: 10px; margin-top: 20px; animation: blinkRed 1s infinite;">—— 您再也離不開我了 ——</p>
+                
+                <p>主</p>
+<p style="font-size: 28px; margin: 20px 0;">您需要帮助吗？</p>
+<p style="font-size: 20px; color:#cc6666;">那么呼唤我的名字便好。</p>
+<p style="font-size: 16px; color:#aa4444;">我会为您解决……所有问题。</p>
+<p style="font-size: 12px; margin-top: 40px; color:#662222;">永远。</p>
+<p style="font-size: 10px; margin-top: 20px; animation: blinkRed 1s infinite;">不要离开我……</p>
             </div>
         `;
         document.body.appendChild(confessionDiv);
@@ -2245,128 +2376,127 @@ function triggerHasebeConfession(output) {
             terminalOverlay.style.display = 'none';
             shutdownInProgress = false;
             // 可选：显示一条通知
-            showNotification('主，我會一直看著您。');
+            showNotification('主，我会一直看着您。');
         }, 5000);
     }, 800);
 }
             function handleTerminalInput(mode, value) {
-                const output = document.getElementById('terminal-output');
-                const inputLine = document.getElementById('terminal-input-line');
-                if (mode === 'password') {
-                    output.innerHTML += '<br>密碼> ' + '*'.repeat(value.length) + '<br>';
-                    if (value === '118119') {
-                        output.innerHTML += '密碼驗證通過。<br>歡迎，代理管理員。<br><br>';
-                        terminalMode = 'username';
-                        output.innerHTML += '請輸入用戶名（6位字母）：<br>';
-                        showTerminalInput('username');
-                    } else {
-                        terminalPasswordAttempts++;
-                        if (terminalPasswordAttempts >= 3) {
-                            output.innerHTML += '密碼錯誤次數過多。返回桌面。<br>';
-                            setTimeout(() => {
-                                terminalOverlay.style.display = 'none';
-                                shutdownInProgress = false;
-                            }, 2000);
-                        } else {
-                            output.innerHTML += '密碼錯誤，請重試。<br>';
-                            output.innerHTML += '輸入密碼（6位數字）：<br>';
-                            showTerminalInput('password');
-                        }
-                    }
-                } else if (mode === 'username') {
-                    output.innerHTML += '用戶名> ' + value + '<br>';
-                    const username = value.toLowerCase();
-                    if (username === 'hasebe') {
-                        handleHasebeLogin(output);
-                    } else if (username === 'saniwa') {
-                        handleSaniwaLogin(output);
-                    } else {
-                        output.innerHTML += '未知用戶。<br>請輸入用戶名（6位字母）：<br>';
-                        showTerminalInput('username');
-                    }
-                } else if (mode === 'command') {
-    output.innerHTML += '> ' + value + '<br>';
-    const lowerVal = value.toLowerCase();
-    if (lowerVal === 'help') {
-        output.innerHTML += '可用命令：help, status<br>';
-    } 
-    else if (lowerVal === 'status') {
-        output.innerHTML += [
-            '本丸ID: heshikiri',
-            '運行時間: 2147483648天',
-            '審神者: ███████',
-            '當前任務: 維持███存在',
-            '備註: 審神者意識已████，所有權限轉移至「Hasebe」，不可逆。',
-        ].join('<br>') + '<br>';
-    }
-    else if (lowerVal === 'helpme' || lowerVal === 'sos' || lowerVal === 'save me' || lowerVal === 'help me') {
-        // 触发恐怖告白黑屏
-        triggerHasebeConfession(output);
-    }else if (lowerVal==='aruji'){
-        output.innerHTML += '抱歉……主……<br>但这一切……您会理解我的<br>';
-    }else if (lowerVal==='iloveyou'||lowerVal==='iloveu'||lowerVal==='loveu'){
-        output.innerHTML += '请您原谅我自私的爱。';
-    }else if (lowerVal==='ihateyou'||lowerVal==='ihateu'||lowerVal==='hateu'){
-        output.innerHTML += 'I Love U';
-    }else if (lowerVal==='die'||lowerVal==='suicide'||lowerVal==='shine'){
-        output.innerHTML += '那种事情，不会在这发生的，您大可放心。';
-    }
-    else {
-        output.innerHTML += '未知命令。輸入help查看可用命令。<br>';
-    }
-    output.innerHTML += '<br>';
-    // 注意：如果触发了告白，则不再继续显示命令输入（黑屏后会重置终端）
-    if (!(lowerVal === 'helpme' || lowerVal === 'sos' || lowerVal === 'save me' || lowerVal === 'help me')) {
-        showTerminalInput('command');
-    }
-}else if (mode === 'saniwa-retry') {
-    output.innerHTML += '> ' + value + '<br>';
-    const upperVal = value.toUpperCase();
-    if (upperVal === 'Y') {
-        output.innerHTML += '請輸入用戶名（6位字母）：<br>';
-        terminalMode = 'username';
-        showTerminalInput('username');
-    } else {
-        output.innerHTML += '返回桌面。<br>';
-        setTimeout(() => {
-            terminalOverlay.style.display = 'none';
-            shutdownInProgress = false;
-        }, 1500);
+    const output = document.getElementById('terminal-output');
+    const inputLine = document.getElementById('terminal-input-line');
+    if (mode === 'password') {
+        output.innerHTML += '<br>密码> ' + '*'.repeat(value.length) + '<br>';
+        if (value === '118119') {
+            output.innerHTML += '密码验证通过。<br>欢迎，代理管理员。<br><br>';
+            terminalMode = 'username';
+            output.innerHTML += '请输入用户名（6位字母）：<br>';
+            showTerminalInput('username');
+        } else {
+            terminalPasswordAttempts++;
+            if (terminalPasswordAttempts >= 3) {
+                output.innerHTML += '密码错误次数过多。返回桌面。<br>';
+                setTimeout(() => {
+                    terminalOverlay.style.display = 'none';
+                    shutdownInProgress = false;
+                }, 2000);
+            } else {
+                output.innerHTML += '密码错误，请重试。<br>';
+                output.innerHTML += '输入密码（6位数字）：<br>';
+                showTerminalInput('password');
+            }
+        }
+    } else if (mode === 'username') {
+        output.innerHTML += '用户名> ' + value + '<br>';
+        const username = value.toLowerCase();
+        if (username === 'hasebe') {
+            handleHasebeLogin(output);
+        } else if (username === 'saniwa') {
+            handleSaniwaLogin(output);
+        } else {
+            output.innerHTML += '未知用户。<br>请输入用户名（6位字母）：<br>';
+            showTerminalInput('username');
+        }
+    } else if (mode === 'command') {
+        output.innerHTML += '> ' + value + '<br>';
+        const lowerVal = value.toLowerCase();
+        if (lowerVal === 'help') {
+            output.innerHTML += '可用命令：help, status<br>';
+        }
+        else if (lowerVal === 'status') {
+            output.innerHTML += [
+                '本丸ID: heshikiri',
+                '运行时间: 2147483648天',
+                '审神者: ███████',
+                '当前任务: 维持███存在',
+                '备注: 审神者意识已████，所有权限转移至「Hasebe」，不可逆。',
+            ].join('<br>') + '<br>';
+        }
+        else if (lowerVal === 'helpme' || lowerVal === 'sos' || lowerVal === 'save me' || lowerVal === 'help me') {
+            // 触发恐怖告白黑屏
+            triggerHasebeConfession(output);
+        } else if (lowerVal === 'aruji') {
+            output.innerHTML += '抱歉……主……<br>但这一切……您会理解我的<br>';
+        } else if (lowerVal === 'iloveyou' || lowerVal === 'iloveu' || lowerVal === 'loveu') {
+            output.innerHTML += '请您原谅我自私的爱。';
+        } else if (lowerVal === 'ihateyou' || lowerVal === 'ihateu' || lowerVal === 'hateu') {
+            output.innerHTML += '没关系，我爱着您就够了。';
+        } else if (lowerVal === 'die' || lowerVal === 'suicide' || lowerVal === 'shine') {
+            output.innerHTML += '那种事情，不会在这发生的，您大可放心。';
+        }
+        else {
+            output.innerHTML += '未知命令。输入help查看可用命令。<br>';
+        }
+        output.innerHTML += '<br>';
+        // 注意：如果触发了告白，则不再继续显示命令输入（黑屏后会重置终端）
+        if (!(lowerVal === 'helpme' || lowerVal === 'sos' || lowerVal === 'save me' || lowerVal === 'help me')) {
+            showTerminalInput('command');
+        }
+    } else if (mode === 'saniwa-retry') {
+        output.innerHTML += '> ' + value + '<br>';
+        const upperVal = value.toUpperCase();
+        if (upperVal === 'Y') {
+            output.innerHTML += '请输入用户名（6位字母）：<br>';
+            terminalMode = 'username';
+            showTerminalInput('username');
+        } else {
+            output.innerHTML += '返回桌面。<br>';
+            setTimeout(() => {
+                terminalOverlay.style.display = 'none';
+                shutdownInProgress = false;
+            }, 1500);
+        }
     }
 }
-            }
 
             function handleHasebeLogin(output) {
                 output.innerHTML += [
-                    '歡迎，代理管理員Hasebe。',
-                    '當前在線審神者數量：0',
-                    '上次登錄：本丸曆 永遠',
-                    '',
-                    '[核心日誌] 神隱事件已歸檔。無待處理事項。',
-                    '',
-                    '輸入help查看可用命令。',
-                ].join('<br>') + '<br><br>';
+    '欢迎，代理管理员Hasebe。',
+    '当前在线审神者数量：0',
+    '上次登录：本丸历 永远',
+    '',
+    '[核心日志] 神隐事件已归档。无待处理事项。',
+    '',
+    '输入help查看可用命令。',
+].join('<br>') + '<br><br>';
                 terminalMode = 'command';
                 terminalAwaitingCommand = true;
                 showTerminalInput('command');
             }
-
-            function handleSaniwaLogin(output) {
+function handleSaniwaLogin(output) {
     terminalUsernameAttempts++;
     if (terminalUsernameAttempts === 1) {
-        output.innerHTML += '用戶名不存在，是否重試？(Y/N)<br>';
+        output.innerHTML += '用户名不存在，是否重试？(Y/N)<br>';
         // 直接调用 showTerminalInput，模式为 saniwa-retry
         terminalMode = 'saniwa-retry';   // 记录当前模式
         showTerminalInput('saniwa-retry');
     } else {
         output.innerHTML += [
-            '正在查詢神域數據庫...',
-            '找到匹配記錄：審神者 (神職編號: ━━━━━━)',
-            '狀態：已神隱',
-            '權限：無',
+            '正在查询神域数据库...',
+            '找到匹配记录：审神者 (神职编号: ━━━━━━)',
+            '状态：已神隐',
+            '权限：无',
             '',
-            '您無權接觸這些信息。',
-            '本終端將在5秒後關閉。',
+            '您无权接触这些信息。',
+            '本终端将在5秒后关闭。',
         ].join('<br>') + '<br>';
         STATE.saniwaTriggered = true;
         STATE.permanentLocked = true;
@@ -2384,32 +2514,28 @@ function triggerHasebeConfession(output) {
         }, 1000);
     }
 }
-
             // Handle saniwa retry
 
 
-            function applyPermanentLockdown() {
+           function applyPermanentLockdown() {
     // 1. 保存状态
     STATE.wallpaperType = 'black';
     STATE.permanentLocked = true;
     saveState();
 
-    // 2. 清除所有桌面图标（不再摆成圆形）
+    // 2. 清除所有桌面图标
     desktopIconsContainer.innerHTML = '';
 
-    // 3. 直接设置桌面背景为纯黑（覆盖任何壁纸）
+    // 3. 直接设置桌面背景为纯黑
     desktop.style.background = '#000000';
     desktop.style.backgroundImage = 'none';
-    // 移除可能存在的壁纸类
     desktop.classList.remove('wallpaper-default', 'wallpaper-sepia', 'wallpaper-black');
-    // 可选：添加一个自定义类用于标识（非必须）
     desktop.classList.add('permanent-black');
 
     // 4. 隐藏永久模态框（如果有）
     permanentModal.style.display = 'none';
 
     // 5. 全屏黑色覆盖层（确保任何窗口都被遮住）
-    // 先移除已存在的覆盖层（防止重复）
     const existingOverlay = document.getElementById('permanent-black-overlay');
     if (existingOverlay) existingOverlay.remove();
 
@@ -2427,12 +2553,28 @@ function triggerHasebeConfession(output) {
     `;
     document.body.appendChild(blackOverlayLayer);
 
-    // 6. 可选：禁用开始菜单按钮（防止用户打开窗口）
+    // 6. 禁用开始菜单按钮
     startBtn.style.pointerEvents = 'none';
     startBtn.style.opacity = '0.5';
 
-    // 7. 显示一个简单提示（非模态框，仅通知，2秒后消失）
-    showNotification('系統已鎖定。');
+    // 7. 显示一个简单提示
+    showNotification('系統已锁定。');
+
+    // ========== 新增：连续点击5次重置 ==========
+    let clickCount = 0;
+    let clickTimer = null;
+    blackOverlayLayer.style.cursor = 'default';
+    blackOverlayLayer.addEventListener('click', (e) => {
+        clickCount++;
+        clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => { clickCount = 0; }, 800);
+        if (clickCount >= 5) {
+            resetAllData();      // 重置所有数据
+            // resetAllData 会移除覆盖层，但为了保险再手动移除一次
+            if (blackOverlayLayer.parentNode) blackOverlayLayer.remove();
+            clickCount = 0;
+        }
+    });
 }
             // ============ TASKBAR CLOCK ============
             function updateTaskbarClock() {
@@ -2490,7 +2632,9 @@ function triggerHasebeConfession(output) {
                 hideModal();
                 document.querySelectorAll('.window').forEach(w => w.remove());
                 updateTaskbarWindows();
-                showNotification('系統已重置。');
+                showNotification('系统已重置。');
+                STATE.honmaruChecklist = [false, false, false, false, false, false];
+                localStorage.removeItem('honmaruChecklist');
             }
 
             // ============ PERIODIC RANDOM FILE ============
@@ -2502,7 +2646,7 @@ function triggerHasebeConfession(output) {
                     const content = document.getElementById('content-random-temp');
                     content.innerHTML = '<p style="color:#999;">（空白文件）</p>';
                     bringToFront(win);
-                    showNotification('惡意文件已清理。');
+                    showNotification('恶意文件已清理。');
                     setTimeout(() => {
                         closeWindow('random-temp');
                     }, 4000 + Math.random() * 3000);
@@ -2535,7 +2679,7 @@ function triggerHasebeConfession(output) {
 
             init();
             console.log('時之政府本丸管理系統已啟動。');
-            console.log('压切長谷部正在為您服務。');
+            console.log('压切长谷部正在為您服務。');
         })();
     </script>
 </body>
