@@ -1466,11 +1466,10 @@ function showGoodEndingChoice() {
     };
 }
 function applyGoodEnding() {
-    // 标记已解锁好结局（防止重复触发）
     STATE.goodEndingUnlocked = true;
     saveState();
 
-    // 创建全屏粉色背景层
+    // 全屏粉色背景
     const endingContainer = document.createElement('div');
     endingContainer.style.cssText = `
         position: fixed;
@@ -1490,12 +1489,11 @@ function applyGoodEnding() {
         overflow-y: auto;
     `;
 
-    // 情书内容（用户可以自行修改这段 HTML）
+    // 情书内容
     const loveLetterHTML = `
         <div style="background: rgba(255,255,240,0.9); padding: 30px; border-radius: 20px; max-width: 600px; text-align: center; box-shadow: 0 0 30px rgba(0,0,0,0.2);">
             <h2 style="color: #b22222;">❤️ 致我最爱的主 ❤️</h2>
             <p style="font-size: 18px; line-height: 1.8; margin: 20px 0;">
-                <!-- 在这里写下您的情书内容，支持HTML标签 -->
                 主……我真的不知道该如何表达对您的心意了。<br>
                 我本以为您会哭会闹，会想着方法离开这里，<br>
                 那温柔的眼大概是再也不会同往常一般望着我了。<br>
@@ -1515,116 +1513,62 @@ function applyGoodEnding() {
             <p style="font-size: 14px; color: #8b4513;">—— 永远爱您的压切长谷部</p>
         </div>
     `;
-
-    // 显示情书
     const letterDiv = document.createElement('div');
     letterDiv.innerHTML = loveLetterHTML;
     endingContainer.appendChild(letterDiv);
 
-    // 添加提示和输入框
+    // 提示文字
     const promptText = document.createElement('p');
     promptText.textContent = '请回应长谷部的心意：';
     promptText.style.cssText = 'margin-top: 30px; font-size: 20px; color: #fff; text-shadow: 1px 1px 2px #b22222;';
     endingContainer.appendChild(promptText);
 
-  const overlapContainer = document.createElement('div');
-overlapContainer.style.cssText = `
-    position: relative;
-    width: 400px;
-    height: 70px;
-    margin-top: 20px;
-    cursor: text;
-`;
+    // 可见的输入框（功能正常）
+    const inputBox = document.createElement('input');
+    inputBox.type = 'text';
+    inputBox.placeholder = '...';
+    inputBox.style.cssText = `
+        width: 400px;
+        padding: 12px 20px;
+        font-size: 20px;
+        font-family: inherit;
+        text-align: center;
+        border: 2px solid #b22222;
+        border-radius: 40px;
+        background: #fff5e6;
+        color: #b22222;
+        outline: none;
+        margin-top: 20px;
+        letter-spacing: 2px;
+    `;
+    endingContainer.appendChild(inputBox);
 
-// 显示文字的框 → 不透明，可见，像输入框
-const displayDiv = document.createElement('div');
-displayDiv.style.cssText = `
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #fff5e6;
-    border: 2px solid #b22222;
-    border-radius: 12px;
-    font-size: 20px;
-    color: #b22222;
-    font-weight: bold;
-    text-align: center;
-    line-height: 66px;
-    font-family: inherit;
-    letter-spacing: 2px;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.1);
-    pointer-events: none;      /* 让点击穿透到下方的输入框 */
-    white-space: nowrap;
-    overflow-x: auto;
-    padding: 0 8px;
-    box-sizing: border-box;
-`;
+    document.body.appendChild(endingContainer);
 
-// 实际输入的框 → 透明但可点击、可聚焦
-const hiddenInput = document.createElement('input');
-hiddenInput.type = 'text';
-hiddenInput.style.cssText = `
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: transparent;
-    border: none;
-    outline: none;
-    color: transparent;          /* 文字完全透明 */
-    caret-color: transparent;    /* 光标透明 */
-    font-size: 20px;
-    text-align: center;
-    z-index: 2;
-    cursor: text;
-`;
-hiddenInput.autocomplete = 'off';
-
-overlapContainer.appendChild(displayDiv);
-overlapContainer.appendChild(hiddenInput);
-endingContainer.appendChild(overlapContainer);
-
-// 确保点击容器时聚焦输入框
-overlapContainer.addEventListener('click', () => {
-    hiddenInput.focus();
-});
-document.body.appendChild(endingContainer);    
     const targetSentence = '我也喜欢长谷部，我们会幸福的';
     let currentIndex = 0;
-    
-    // 聚焦输入框
-    hiddenInput.focus();
-    
-    hiddenInput.addEventListener('input', (e) => {
-        const userInput = e.target.value;
-        if (userInput.length > 0) {
-            // 不管用户输入什么，都向前推进目标句子
-            const newLength = Math.min(currentIndex + 1, targetSentence.length);
-            const newText = targetSentence.substring(0, newLength);
-            displayDiv.textContent = newText;
-            currentIndex = newLength;
-            
-            // 清空输入框，以便继续接收下一字（但不清空显示）
-            hiddenInput.value = '';
-            
-            // 如果完整句子已显示
-            if (currentIndex === targetSentence.length) {
-    hiddenInput.disabled = true;
-    setTimeout(() => {
-        alert("结局四：在故事的最后，主人和狗幸福地永远地生活在一起");
-        resetAllData();
-        if (endingContainer.parentNode) endingContainer.remove();
-    }, 1500);
-}
-        }
-    });
-    
-    // 点击整个容器时重新聚焦输入框
-    overlapContainer.addEventListener('click', () => {
-        hiddenInput.focus();
+
+    // 用户点击输入框时开始自动填充
+    inputBox.addEventListener('click', () => {
+        if (currentIndex >= targetSentence.length) return;
+        // 开始自动逐字填充
+        const interval = setInterval(() => {
+            if (currentIndex < targetSentence.length) {
+                currentIndex++;
+                inputBox.value = targetSentence.substring(0, currentIndex);
+                if (currentIndex === targetSentence.length) {
+                    clearInterval(interval);
+                    inputBox.disabled = true;
+                    setTimeout(() => {
+                        alert("结局四：在故事的最后，主人和狗幸福地永远地生活在一起");
+                        resetAllData();
+                        if (endingContainer.parentNode) endingContainer.remove();
+                    }, 1500);
+                }
+            } else {
+                clearInterval(interval);
+            }
+        }, 100);
     });
 }
 function showLoveLetterModal() {
