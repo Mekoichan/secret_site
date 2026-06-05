@@ -1527,58 +1527,70 @@ function applyGoodEnding() {
     promptText.style.cssText = 'margin-top: 30px; font-size: 20px; color: #fff; text-shadow: 1px 1px 2px #b22222;';
     endingContainer.appendChild(promptText);
 
-    const overlapContainer = document.createElement('div');
-    overlapContainer.style.cssText = `
-        position: relative;
-        width: 400px;
-        height: 60px;
-        margin-top: 15px;
-    `;
-    
-    // 显示文字区（用户看到的逐渐填充的句子）
-    const displayDiv = document.createElement('div');
-    displayDiv.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: transparent;
-        font-size: 22px;
-        color: #b22222;
-        font-weight: bold;
-        text-align: center;
-        line-height: 60px;
-        pointer-events: none;  /* 让点击穿透到输入框 */
-        font-family: inherit;
-        letter-spacing: 2px;
-    `;
-    
-    // 透明输入框（实际接收输入）
-    const hiddenInput = document.createElement('input');
-    hiddenInput.type = 'text';
-    hiddenInput.style.cssText = `
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: transparent;
-        border: none;
-        outline: none;
-        color: transparent;      /* 文字完全透明 */
-        caret-color: transparent; /* 光标也透明 */
-        font-size: 22px;
-        text-align: center;
-        z-index: 1;
-    `;
-    hiddenInput.autocomplete = 'off';
-    
-    overlapContainer.appendChild(displayDiv);
-    overlapContainer.appendChild(hiddenInput);
-    endingContainer.appendChild(overlapContainer);
-    
-    document.body.appendChild(endingContainer);
+  const overlapContainer = document.createElement('div');
+overlapContainer.style.cssText = `
+    position: relative;
+    width: 400px;
+    height: 70px;
+    margin-top: 20px;
+    cursor: text;
+`;
+
+// 显示文字的框 → 不透明，可见，像输入框
+const displayDiv = document.createElement('div');
+displayDiv.style.cssText = `
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff5e6;
+    border: 2px solid #b22222;
+    border-radius: 12px;
+    font-size: 20px;
+    color: #b22222;
+    font-weight: bold;
+    text-align: center;
+    line-height: 66px;
+    font-family: inherit;
+    letter-spacing: 2px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.1);
+    pointer-events: none;      /* 让点击穿透到下方的输入框 */
+    white-space: nowrap;
+    overflow-x: auto;
+    padding: 0 8px;
+    box-sizing: border-box;
+`;
+
+// 实际输入的框 → 透明但可点击、可聚焦
+const hiddenInput = document.createElement('input');
+hiddenInput.type = 'text';
+hiddenInput.style.cssText = `
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: transparent;          /* 文字完全透明 */
+    caret-color: transparent;    /* 光标透明 */
+    font-size: 20px;
+    text-align: center;
+    z-index: 2;
+    cursor: text;
+`;
+hiddenInput.autocomplete = 'off';
+
+overlapContainer.appendChild(displayDiv);
+overlapContainer.appendChild(hiddenInput);
+endingContainer.appendChild(overlapContainer);
+
+// 确保点击容器时聚焦输入框
+overlapContainer.addEventListener('click', () => {
+    hiddenInput.focus();
+});
     
     const targetSentence = '我也喜欢长谷部，我们会幸福的';
     let currentIndex = 0;
@@ -1600,13 +1612,13 @@ function applyGoodEnding() {
             
             // 如果完整句子已显示
             if (currentIndex === targetSentence.length) {
-                hiddenInput.disabled = true;
-                // 延迟 1.5 秒后重置游戏
-                setTimeout(() => {
-                    resetAllData();
-                    if (endingContainer.parentNode) endingContainer.remove();
-                }, 1500);
-            }
+    hiddenInput.disabled = true;
+    setTimeout(() => {
+        alert("结局四：在故事的最后，主人和狗幸福地永远地生活在一起");
+        resetAllData();
+        if (endingContainer.parentNode) endingContainer.remove();
+    }, 1500);
+}
         }
     });
     
@@ -3004,17 +3016,9 @@ function startPseudoNotificationFlood() {
             overlay.innerHTML = '您不会真的以为能逃出去吧';
             document.body.appendChild(overlay);
             setTimeout(() => {
-                // 永久黑屏，不可关闭，只能重置
-                overlay.style.background = '#000';
-                overlay.innerHTML = '';
-                overlay.style.pointerEvents = 'all';
-                // 添加重置说明（连续点击5次黑屏重置）
-                let clickCount = 0;
-                overlay.onclick = () => {
-                    clickCount++;
-                    if (clickCount >= 5) resetAllData();
-                };
-            }, 4000);
+                alert("结局二：永远无法达到“离开”的真实");
+                resetAllData();
+            }, 2000);
         }
     }, 1500);
 }
@@ -3072,13 +3076,10 @@ function applyPseudoEndingBlackScreen() {
     document.body.appendChild(overlay);
 
     // 无法关闭，只能重置（连续点击5次重置）
-    let clickCount = 0;
-    overlay.onclick = () => {
-        clickCount++;
-        if (clickCount >= 5) {
-            resetAllData();
-        }
-    };
+    setTimeout(() => {
+        alert("结局三：到乡翻似烂柯人");
+        resetAllData();
+    }, 2000);
 }
             function handleHasebeLogin(output) {
                 output.innerHTML += [
@@ -3132,6 +3133,9 @@ function handleSaniwaLogin(output) {
 
            function applyPermanentLockdown() {
     // 1. 保存状态
+    alert("结局一：他发现你了");
+    resetAllData();
+    return;  // 阻止原锁定逻辑
     STATE.wallpaperType = 'black';
     STATE.permanentLocked = true;
     saveState();
@@ -3172,7 +3176,10 @@ function handleSaniwaLogin(output) {
 
     // 7. 显示一个简单提示
     showNotification('系統已锁定。');
-
+ setTimeout(() => {
+        alert("结局一：他发现你了");
+        resetAllData();
+    }, 2000);
     // ========== 新增：连续点击5次重置 ==========
     let clickCount = 0;
     let clickTimer = null;
